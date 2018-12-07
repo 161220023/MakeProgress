@@ -22,13 +22,12 @@ class ShapeButton extends JButton{
 @SuppressWarnings("serial")
 public class ShapesPanel extends JPanel{
 	ButtonGroup bg;
-	
-	ShapeButton encased;
-	
+
 	ShapeButton pencil;
 	ShapeButton eraser;
 	ShapeButton sampler;
-	ShapeButton paintbucket;
+	//ShapeButton paintbucket;
+	//JButton paintbucket;
 	ShapeButton string;
 	
 	ShapeButton line;
@@ -36,6 +35,7 @@ public class ShapesPanel extends JPanel{
 	ShapeButton circle;
 	ShapeButton oval;
 	ShapeButton polygon;
+	ShapeButton bsplinecurve;
 
 	ShapesPanel(){
 		//设置面板背景色
@@ -55,6 +55,7 @@ public class ShapesPanel extends JPanel{
 		circle=new ShapeButton(new MyCircle());
 		oval=new ShapeButton(new MyOval());
 		polygon=new ShapeButton(new MyPolygon());
+		bsplinecurve=new ShapeButton(new MyBSplineCurve());
 		
 		//设置首选大小
 		pencil.setPreferredSize(new Dimension(20,20));
@@ -67,6 +68,7 @@ public class ShapesPanel extends JPanel{
 		oval.setPreferredSize(new Dimension(20,20));
 		circle.setPreferredSize(new Dimension(20,20));
 		polygon.setPreferredSize(new Dimension(20,20));
+		bsplinecurve.setPreferredSize(new Dimension(20,20));
 		
 		@SuppressWarnings("rawtypes")
 		Class c=getClass();
@@ -79,7 +81,8 @@ public class ShapesPanel extends JPanel{
 		ImageIcon ovalicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/oval.jpg")));
 		ImageIcon circleicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/circle.jpg")));
 		ImageIcon polygonicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/polygon.jpg")));
-
+		ImageIcon bsplinecurveicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/bsplinecurve.jpg")));
+		
 		pencil.setIcon(pencilicon);
 		eraser.setIcon(erasericon);
 		sampler.setIcon(samplericon);
@@ -90,6 +93,7 @@ public class ShapesPanel extends JPanel{
 		oval.setIcon(ovalicon);
 		circle.setIcon(circleicon);
 		polygon.setIcon(polygonicon);
+		bsplinecurve.setIcon(bsplinecurveicon);
 		
 		//设置提示
 		pencil.setToolTipText("铅笔");
@@ -102,6 +106,7 @@ public class ShapesPanel extends JPanel{
 		oval.setToolTipText("椭圆");
 		circle.setToolTipText("圆");
 		polygon.setToolTipText("多边形");
+		bsplinecurve.setToolTipText("B样条曲线");
 		
 		//设置布局
 		setLayout(new FlowLayout(FlowLayout.LEFT,5,5));
@@ -118,6 +123,7 @@ public class ShapesPanel extends JPanel{
 		bg.add(circle);
 		bg.add(oval);
 		bg.add(polygon);
+		bg.add(bsplinecurve);
 		
 		add(pencil);
 		add(eraser);
@@ -129,10 +135,11 @@ public class ShapesPanel extends JPanel{
 		add(circle);
 		add(oval);
 		add(polygon);
+		add(bsplinecurve);
 		
 		//设置默认图形
 		line.setSelected(true);
-		encased=new ShapeButton(line.shape);
+		ContentPanel.shape=line.shape;
 		line.setBorder(BorderFactory.createLoweredBevelBorder());
 		
 		//添加事件侦听器
@@ -148,6 +155,7 @@ public class ShapesPanel extends JPanel{
 		actionshape(oval);
 		actionshape(circle);
 		actionshape(polygon);
+		actionshape(bsplinecurve);
 	}
 	
 	void actionshape(ShapeButton sb) {
@@ -172,18 +180,23 @@ public class ShapesPanel extends JPanel{
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				//如果前一个是polygon则让其闭合或者若没有达到两点之间的距离要求则取消
-				/*if(encased.shape instanceof MyPolygon) {
-					//DrawPanel.cl
-					if()
-				}*/
+				ContentPanel.curshape=null;  //更换形状要设置当前形状为null
+				ContentPanel.polygon=null;   //取消继续画多边形
+				ContentPanel.bcurve=null;    //取消继续画B样条曲线
 				sb.setSelected(true);
-				if(sb.shape instanceof MyPolygon)
+				if(sb.shape instanceof MyPolygon)   //表明要画多边形
 					ContentPanel.Polygonflag=true;
 				else
-					ContentPanel.Polygonflag=false;
+					ContentPanel.Polygonflag=false; //画非多边形
+				if(sb.shape instanceof MyBSplineCurve)
+					ContentPanel.bsplinecurveflag=true;
+				else
+					ContentPanel.bsplinecurveflag=false;
 				sb.setBorder(BorderFactory.createLoweredBevelBorder());
-				encased.shape=sb.shape;
-
+				
+				//设置面板的图形
+				ContentPanel.shape=sb.shape;
+				
 				//将同一个组的其他按钮设置为未选中,且重绘默认边框
 				Enumeration<AbstractButton> shapes=bg.getElements();
 				while(shapes.hasMoreElements()) {

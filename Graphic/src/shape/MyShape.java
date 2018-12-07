@@ -1,38 +1,54 @@
 package shape;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.util.ArrayList;
 
 public class MyShape {
-	//用列表存储参数
-	public ArrayList<Object> parameter=new ArrayList<>();
 	
-	public void changepounds(int pounds) {}
+	public static double pi=3.141592653589793238463;
 	
-	public void changecolor(Color color) {}
+	public void changepounds(int pounds) {}//改变粗细
+	
+	public void changecolor(Color color) {}//改变颜色
+	
+	public Cursor getCursor(int x, int y) {return new Cursor(0);}//判断当前位置与目标图形的位置关系以此确定鼠标形状
+	
+	public boolean inrotate(int x, int y) {return false;}//是否在旋转点
+	
+	public boolean inboarder(int x, int y) {return false;}//是否在图形边界上
+	
+	public boolean ininternal(int x, int y) {return false;}//是否在图形内部
+	
+	public void changeshape(Cursor cursor, int x, int y) {}//根据鼠标形状判断应该如何形变
+	
+	public void rotate(double theta) {}//逆时针旋转角度
 	
 	public void move(int x, int y) {}//移动(x,y)的距离
 	
-	public void leftexpansion(int minx) {}//左边的扩张线
+	public void leftexpansion(int x, int y) {}//左边的扩张线
 	
-	public void rightexpansion(int maxx) {}//右边的扩张线
+	public void rightexpansion(int x, int y) {}//右边的扩张线
 	
-	public void upexpansion(int miny) {}//上边的扩张线
+	public void upexpansion(int x, int y) {}//上边的扩张线
 	
-	public void downexpansion(int maxy) {}//下边的扩张线
+	public void downexpansion(int x, int y) {}//下边的扩张线
 	
-	public void leftupexpansion(int minx, int miny) {}//左上的扩张线
+	public void leftupexpansion(int x, int y) {}//左上的扩张线
 	
-	public void rightupexpansion(int maxx, int miny) {}//右上的扩张线
+	public void rightupexpansion(int x, int y) {}//右上的扩张线
 
-	public void leftdownexpansion(int minx, int maxy) {}//左下的扩张线
+	public void leftdownexpansion(int x, int y) {}//左下的扩张线
 	
 	public void rightdownexpansion(int maxx, int maxy) {}//右下的扩张线
 	
 	public void draw(Graphics g) {}
 	
-	public boolean ininternal(int x, int y) {return false;}
+	public static boolean aroundpoint(int x1, int y1, int x2, int y2) {//是否在某个点附近
+		double d=(x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
+		return d<=25;
+	}
 	
 	private static void draw1poundline(Graphics g, int x1, int y1, int x2, int y2) {
 		double e=Math.abs(x2-x1)>Math.abs(y2-y1)?Math.abs(x2-x1):Math.abs(y2-y1);
@@ -286,23 +302,19 @@ public class MyShape {
 		g.setColor(precolor);
 	}
 	
-	public static void drawrectangle(Graphics g, int minx, int miny, int maxx, int maxy, int pounds, Color color) {
+	public static void drawrectangle(Graphics g, MyPoint point1, MyPoint point2, MyPoint point3, MyPoint point4, int pounds, Color color) {
 		Color precolor=g.getColor();
 		g.setColor(color);
-		int up;
-		int down;
-		if(pounds%2==0) {
-			up=pounds/2;
-			down=pounds-up-1;
-		}
-		else {
-			up=(pounds-1)/2;
-			down=up;
-		}
-		drawline(g, minx-up, miny, maxx+down, miny, pounds, color);
-		drawline(g, maxx, miny-up, maxx, maxy+down, pounds, color);
-		drawline(g, minx-up, maxy, maxx+down, maxy, pounds, color);
-		drawline(g, minx, miny-up, minx, maxy+down, pounds, color);
+		
+		int x1=point1.x, y1=point1.y;
+		int x2=point2.x, y2=point2.y;
+		int x3=point3.x, y3=point3.y;
+		int x4=point4.x, y4=point4.y;
+		drawline(g,x1,y1,x2,y2,pounds,color);
+		drawline(g,x2,y2,x3,y3,pounds,color);
+		drawline(g,x3,y3,x4,y4,pounds,color);
+		drawline(g,x4,y4,x1,y1,pounds,color);
+		
 		g.setColor(precolor);
 	}
 	
@@ -376,19 +388,28 @@ public class MyShape {
 		g.setColor(precolor);
 	}
 	
-	public static void drawoval(Graphics g, int minx, int miny, int maxx, int maxy, int pounds, Color color) {
+	public static void drawoval(Graphics g, MyPoint pointmin, MyPoint pointmax, double theta, int pounds, Color color) {
 		Color precolor=g.getColor();
 		g.setColor(color);
-		int rx=(maxx-minx)/2;
-		int ry=(maxy-miny)/2;
-		int rx2=rx*rx;
-		int ry2=ry*ry;
-		int x=0,y=ry;
+		
+		int minx=pointmin.x, miny=pointmin.y;
+		int maxx=pointmax.x, maxy=pointmax.y;
+		double rx=(maxx-minx)/2;
+		double ry=(maxy-miny)/2;
+		int rx2=(int)(rx*rx);
+		int ry2=(int)(ry*ry);
+		int x=0,y=(int)ry;
 		double pk=ry2-rx2*ry+0.25*rx2;
 		int x0=(maxx+minx)/2;
 		int y0=(maxy+miny)/2;
-		g.drawLine(x+x0, y+y0, x+x0, y+y0);//(x,y)
-		g.drawLine(x+x0, -y+y0, x+x0, -y+y0);//(x,-y)
+		//逆时针旋转
+		double costheta=Math.cos(theta);
+		double sintheta=Math.sin(theta);
+		int newx=x0+(int)(x*costheta+y*sintheta);
+		int newy=y0+(int)(x*sintheta+y*costheta);
+		g.drawLine(newx, newy, newx, newy);//(x0+x,y0+y)
+		//关于(x0,y0)对称
+		g.drawLine(2*x0-newx, 2*y0-newy, 2*x0-newx, 2*y0-newy);//(x0-x,y0-y)
 		while(ry2*x<rx2*y) {
 			if(pk<0)
 				pk=pk+2*x*ry2+ry2;
@@ -397,10 +418,14 @@ public class MyShape {
 				y--;
 			}
 			x++;
-			g.drawLine(x+x0, y+y0, x+x0, y+y0);//(x,y)
-			g.drawLine(x+x0, -y+y0, x+x0, -y+y0);//(x,-y)
-			g.drawLine(-x+x0, -y+y0, -x+x0, -y+y0);//(-x,-y)
-			g.drawLine(-x+x0, y+y0, -x+x0, y+y0);//(-x,y)
+			newx=x0+(int)(x*costheta+y*sintheta);
+			newy=y0+(int)(x*sintheta+y*costheta);
+			g.drawLine(newx, newy, newx, newy);//(x0+x,y0+y)
+			g.drawLine(2*x0-newx, 2*y0-newy, 2*x0-newx, 2*y0-newy);//(x0-x,y0-y)
+			newx=x0+(int)(x*costheta-y*sintheta);
+			newy=y0+(int)(x*sintheta-y*costheta);
+			g.drawLine(newx,newy,newx,newy);//(x0+x,y0-y)
+			g.drawLine(2*x0-newx, 2*y0-newy, 2*x0-newx, 2*y0-newy);//(x0-x,y0+y)
 		}
 		pk=rx2+0.25*ry2-rx2*ry2/Math.sqrt(rx2+ry2);
 		while(y>0) {
@@ -411,10 +436,14 @@ public class MyShape {
 			else
 				pk=pk-2*y*rx2+rx2;
 			y--;
-			g.drawLine(x+x0, y+y0, x+x0, y+y0);//(x,y)
-			g.drawLine(x+x0, -y+y0, x+x0, -y+y0);//(x,-y)
-			g.drawLine(-x+x0, -y+y0, -x+x0, -y+y0);//(-x,-y)
-			g.drawLine(-x+x0, y+y0, -x+x0, y+y0);//(-x,y)
+			newx=x0+(int)(x*costheta+y*sintheta);
+			newy=y0+(int)(x*sintheta+y*costheta);
+			g.drawLine(newx, newy, newx, newy);//(x0+x,y0+y)
+			g.drawLine(2*x0-newx, 2*y0-newy, 2*x0-newx, 2*y0-newy);//(x0-x,y0-y)
+			newx=x0+(int)(x*costheta-y*sintheta);
+			newy=y0+(int)(x*sintheta-y*costheta);
+			g.drawLine(newx, newy, newx, newy);//(x0+x,y0-y)
+			g.drawLine(2*x0-newx, 2*y0-newy, 2*x0-newx, 2*y0-newy);//(x0-x,y0+y)
 		}
 		g.setColor(precolor);
 	}

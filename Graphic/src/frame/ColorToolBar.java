@@ -22,7 +22,6 @@ class ColorButton extends JButton{
 @SuppressWarnings("serial")
 public class ColorToolBar extends JToolBar{
 	JButton foregroundcolorbutton;
-	JButton backgroundcolorbutton;
 	JLabel space;
 	
 	//常用颜色按钮
@@ -43,7 +42,6 @@ public class ColorToolBar extends JToolBar{
 	ColorToolBar(){
 		//初始化
 		foregroundcolorbutton=new JButton();
-		backgroundcolorbutton=new JButton();
 		space=new JLabel();
 		
 		black=new ColorButton(Color.BLACK);
@@ -60,14 +58,9 @@ public class ColorToolBar extends JToolBar{
 		editcolor=new JButton("调色");
 		
 		foregroundcolorbutton.setBackground(Color.BLACK);
-		backgroundcolorbutton.setBackground(Color.WHITE);
-		
-		//设置默认为前景色,将背景色设置为透明
-		backgroundcolorbutton.setOpaque(false);
-		
+
 		//设置提示
 		foregroundcolorbutton.setToolTipText("前景色");
-		backgroundcolorbutton.setToolTipText("背景色");
 
 		editcolor.setFont(new Font("Dialog",0,8));
 		
@@ -77,7 +70,6 @@ public class ColorToolBar extends JToolBar{
 		d.width=d.height;
 
 		foregroundcolorbutton.setPreferredSize(d);
-		backgroundcolorbutton.setPreferredSize(d);
 		space.setPreferredSize(d);
 		black.setPreferredSize(d);
 		white.setPreferredSize(d);
@@ -96,7 +88,6 @@ public class ColorToolBar extends JToolBar{
 		
 		//添加组件
 		add(foregroundcolorbutton);
-		add(backgroundcolorbutton);
 		add(space);
 		add(black);
 		add(white);
@@ -113,31 +104,10 @@ public class ColorToolBar extends JToolBar{
 		//给编辑颜色按钮添加事件
 		editcolor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(foregroundcolorbutton.isOpaque()) {//给前景色选取颜色
-					Color forecolor=JColorChooser.showDialog(new ColorToolBar(), "编辑颜色", Color.BLACK);
-					foregroundcolorbutton.setBackground(forecolor);	
-				}
-				else {//给背景色选取颜色
-					Color backcolor=JColorChooser.showDialog(new ColorToolBar(), "编辑颜色", Color.BLACK);
-					backgroundcolorbutton.setBackground(backcolor);
-				}
-			}
-		});
-		
-		//给前景背景色按钮添加事件
-		foregroundcolorbutton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				foregroundcolorbutton.setOpaque(true);
-				backgroundcolorbutton.setOpaque(false);
-				backgroundcolorbutton.repaint();
-			}
-		});
-		
-		backgroundcolorbutton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				backgroundcolorbutton.setOpaque(true);
-				foregroundcolorbutton.setOpaque(false);
-				foregroundcolorbutton.repaint();
+				Color color=JColorChooser.showDialog(new ColorToolBar(), "编辑颜色", Color.BLACK);
+				foregroundcolorbutton.setBackground(color);
+				modifycurshapecolor(color);
+				ContentPanel.forecolor=color;
 			}
 		});
 		
@@ -153,13 +123,17 @@ public class ColorToolBar extends JToolBar{
 		addButtonListener(purple);
 	}
 	
+	void modifycurshapecolor(Color color) {
+		if(ContentPanel.curshape!=null)
+			ContentPanel.curshape.changecolor(color);
+	}
+	
 	void addButtonListener(ColorButton cb) {
 		cb.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(foregroundcolorbutton.isOpaque()) //给前景色选取颜色
-					foregroundcolorbutton.setBackground(cb.color);
-				else //给背景色选取颜色
-					backgroundcolorbutton.setBackground(cb.color);
+				foregroundcolorbutton.setBackground(cb.color);
+				modifycurshapecolor(cb.color);
+				ContentPanel.forecolor=cb.color;
 			}
 		});
 		cb.addMouseListener(new MouseAdapter() {

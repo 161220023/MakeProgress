@@ -19,19 +19,19 @@ class FontNameList extends JComboBox {
 	static String[] name= {"Arial","sans-serif","Helvetica","Tahoma","Verdana"};
 	static ListModel listmodel=new ListModel(name);
 	String fontname;
-	JLabel encased;
+	//JLabel encased;
 	@SuppressWarnings("unchecked")
-	FontNameList(JLabel encased){
+	FontNameList(){
 		super(listmodel);
 		fontname="Arial";//默认的字体
-		this.encased=encased;
+		//this.encased=encased;
 		this.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// TODO 自动生成的方法存根
 				fontname=(String)e.getItem();
-				Font font=encased.getFont();
-				encased.setFont(new Font(fontname,font.getStyle(),font.getSize()));
+				//Font font=encased.getFont();
+				//encased.setFont(new Font(fontname,font.getStyle(),font.getSize()));
 			}
 		});
 	}
@@ -42,24 +42,24 @@ class FontStyleList extends JComboBox {
 	static String[] style= {"PLAIN","BOLD","ITALIC"};
 	static ListModel listmodel=new ListModel(style);
 	int fontstyle;
-	JLabel encased;
+	//JLabel encased;
 	@SuppressWarnings("unchecked")
-	FontStyleList(JLabel encased){
+	FontStyleList(){
 		super(listmodel);
 		fontstyle=Font.PLAIN;//默认的字体风格
-		this.encased=encased;
+		//this.encased=encased;
 		this.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// TODO 自动生成的方法存根
 				String str=(String)e.getItem();
-				Font font=encased.getFont();
+				//Font font=encased.getFont();
 				switch(str) {
 				case "PLAIN":fontstyle=Font.PLAIN;
 				case "BOLD":fontstyle=Font.BOLD;
 				case "ITALIC":fontstyle=Font.ITALIC;
 				}
-				encased.setFont(new Font(font.getName(),fontstyle,font.getSize()));
+				//encased.setFont(new Font(font.getName(),fontstyle,font.getSize()));
 			}
 		});
 	}
@@ -70,22 +70,20 @@ class FontSizeList extends JComboBox {
 	static String[] size= {"1","2","3","4","5","6","7","8","9","10"};
 	static ListModel listmodel=new ListModel(size);
 	int fontsize;
-	JLabel encased;
 	@SuppressWarnings("unchecked")
-	FontSizeList(JLabel encased){
+	FontSizeList(){
 		super(listmodel);
 		fontsize=1;//默认的字体大小是1
-		this.encased=encased;
 		this.addItemListener(new ItemListener() {
-
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				// TODO 自动生成的方法存根
 				fontsize=Integer.parseInt((String)e.getItem());
-				Font font=encased.getFont();
-				encased.setFont(new Font(font.getName(),font.getStyle(),fontsize));
+				//ContentPanel.font=new Font("Arial", Font.PLAIN, fontsize);
+				ContentPanel.fontsize=fontsize;
+				if(ContentPanel.curshape!=null)
+					ContentPanel.curshape.changepounds(fontsize);
+				//ContentPanel.fontsize=fontsize;
 			}
-			
 		});
 	}
 }
@@ -95,16 +93,14 @@ public class FontPanel extends JPanel{
 	FontNameList fontnamelist;
 	FontStyleList fontstylelist;
 	FontSizeList fontsizelist;
-	
-	JLabel encased;
-	
+
 	FontPanel(){
-		//初始化
-		encased=new JLabel();
-		encased.setFont(new Font("Arial",Font.PLAIN,1));
-		fontnamelist=new FontNameList(encased);
-		fontstylelist=new FontStyleList(encased);
-		fontsizelist=new FontSizeList(encased);
+		
+		fontnamelist=new FontNameList();
+		fontstylelist=new FontStyleList();
+		
+		//暂时只有大小能用
+		fontsizelist=new FontSizeList();
 		
 		//添加内容
 		add(fontnamelist);

@@ -80,12 +80,12 @@ public class MainFrame extends JFrame{
 		ctb=new ColorToolBar();
 		
 		//初始化内容面板
-		contentpanel=new ContentPanel(ctb.foregroundcolorbutton,ctb.backgroundcolorbutton,shapepanel.encased,fontpanel.encased);
+		contentpanel=new ContentPanel();
 		
 		//初始化坐标面板
 		locationpanel.setPreferredSize(new Dimension(0,25));
 		locationpanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		locationpanel.add(contentpanel.drawpanel.location);
+		locationpanel.add(contentpanel.location);
 		
 		//添加内容
 		menupanel.setJMenuBar(mmb);

@@ -8,49 +8,21 @@ import java.awt.event.*;
 import java.util.ArrayList;
 
 @SuppressWarnings("serial")
-public class ContentPanel extends JScrollPane {
-	public DrawPanel drawpanel;
-	public static boolean Polygonflag=false;
-	ContentPanel(JButton forecolorbutton, JButton backcolorbutton, ShapeButton shapebutton, JLabel fontlabel){
-		drawpanel=new DrawPanel(forecolorbutton, backcolorbutton, shapebutton, fontlabel);
-		setViewportView(drawpanel);
-		this.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_ALWAYS);
-		this.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_ALWAYS);
-	}
-	
-	public void initial() {
-		drawpanel.initial();
-	}
-	
-	@Override
-	public void repaint() {
-		if(drawpanel!=null)
-			drawpanel.initial();
-	}
-}
-
-@SuppressWarnings("serial")
-class DrawPanel extends JPanel implements MouseListener, MouseMotionListener{
+public class ContentPanel extends JPanel implements MouseListener, MouseMotionListener {
+	public static boolean Polygonflag=false; //是否要画多边形
+	public static boolean bsplinecurveflag=false;//是否要画B样条曲线
+	public static Color forecolor=null;      //颜色
+	public static MyShape shape=null;        //画的形状
+	//public static Font font=null;            //字体
+	public static MyShape curshape=null;	 //当前形状
+	public static int fontsize=0;            //线粗细
+	public static MyPolygon polygon=null;           //当前是否在画多边形
+	public static MyBSplineCurve bcurve=null;       //当前是否在画B样条曲线
 	Graphics g;
 	
 	FilePopMenu fpm;
-	
-	JButton forecolorbutton;
-	JButton backcolorbutton;
-	ShapeButton shapebutton;
-	JLabel fontlabel;
-	
-	/*Image movecursorimage;
-	Image extendcursorimage;
-	Image reversecursorimage;
-	
-	Cursor movecursor;
-	Cursor extendcursor;
-	Cursor reversecursor;*/
-	
-	ArrayList<MyShape> shapes;
-	MyPolygon polygon=null;
-	MyShape curshape=null;
+
+	public ArrayList<MyShape> shapes;
 	int firstx,firsty;
 	int minx,miny,maxx,maxy;
 	boolean modify=false;
@@ -58,34 +30,34 @@ class DrawPanel extends JPanel implements MouseListener, MouseMotionListener{
 	boolean edit=false;
 	int index=0;
 	//还需要有其他...如字体,大小等
+
+	public static Cursor normal=new Cursor(0);            //最常见的鼠标形状
+	public static Cursor crisscross=new Cursor(1);  		//十
+	public static Cursor text=new Cursor(2);  			//| 输入文本
+	public static Cursor loading=new Cursor(3);  			//加载  o
+	public static Cursor rightupexpansion=new Cursor(4);  //正斜扩 /
+	public static Cursor rightdownexpansion=new Cursor(5);//反斜扩 \
+	public static Cursor leftupexpansion=new Cursor(6);  	//反斜扩 \
+	public static Cursor leftdownexpansion=new Cursor(7); //正斜扩 /
+	public static Cursor upexpansion=new Cursor(8);  		//上下扩大
+	public static Cursor downexpansion=new Cursor(9); 	//上下扩大
+	public static Cursor leftexpansion=new Cursor(10);	//<-->左右扩大
+	public static Cursor rightexpansion=new Cursor(11);	//<-->左右扩大
+	public static Cursor hand=new Cursor(12);				//手形
+	public static Cursor move=new Cursor(13);				//移动
+	public static Toolkit tk=Toolkit.getDefaultToolkit();
+	static Image cimage=tk.getImage("E:\\eclipse_workspace\\Graphic\\bin\\frame\\additions\\rotate.png");
+	public static Cursor rotate = tk.createCustomCursor(cimage, new Point(30, 30), "norm");
 	
-	//Toolkit tk;
-	Cursor normal=new Cursor(0);            //最常见的鼠标形状
-	Cursor crisscross=new Cursor(1);  		//十
-	Cursor text=new Cursor(2);  			//| 输入文本
-	Cursor loading=new Cursor(3);  			//加载  o
-	Cursor rightupexpansion=new Cursor(4);  //正斜扩 /
-	Cursor rightdownexpansion=new Cursor(5);//反斜扩 \
-	Cursor leftupexpansion=new Cursor(6);  	//反斜扩 \
-	Cursor leftdownexpansion=new Cursor(7); //正斜扩 /
-	Cursor upexpansion=new Cursor(8);  		//上下扩大
-	Cursor downexpansion=new Cursor(9); 	//上下扩大
-	Cursor leftexpansion=new Cursor(10);	//<-->左右扩大
-	Cursor rightexpansion=new Cursor(11);	//<-->左右扩大
-	Cursor hand=new Cursor(12);				//手形
-	Cursor move=new Cursor(13);				//移动
 	
+	Cursor cursor;
 	
 	int x1,x2,y1,y2;
 	int xpos,ypos;
 	JLabel location;
 	
-	DrawPanel(JButton forecolorbutton, JButton backcolorbutton, ShapeButton shapebutton, JLabel fontlabel){
+	ContentPanel(){
 		//还需要添加粗细,字体,画笔等方法
-		this.forecolorbutton=forecolorbutton;
-		this.backcolorbutton=backcolorbutton;
-		this.shapebutton=shapebutton;
-		this.fontlabel=fontlabel;
 		fpm=new FilePopMenu();
 		location=new JLabel();
 		shapes=new ArrayList<MyShape>();
@@ -122,21 +94,31 @@ class DrawPanel extends JPanel implements MouseListener, MouseMotionListener{
 		//点之后没有移动然后释放是为点击
 		//先press,后release,最后click
 		if(e.getClickCount()==2) {//双击生成多边形
-			if(ContentPanel.Polygonflag) {
-				if(polygon!=null) {
+			if(ContentPanel.Polygonflag) {    //当前选择的图形是多边形
+				if(polygon!=null) {           //当前正在画多边形
 					//判断点集大小是否超过1
-					@SuppressWarnings("unchecked")
-					ArrayList<MyPoint> points=(ArrayList<MyPoint>)polygon.parameter.get(2);
-					int len=points.size();
+					int len=polygon.countpoints();
 					if(len>1) {//这个多边形不止有一个起始点，则加入此多边形
-						polygon.addminmax(new MyPoint(minx, miny), new MyPoint(maxx, maxy));
 						polygon.addscale();
 						shapes.add(polygon);
 						curshape=polygon;
-						MyShape.drawline(g, x1, y1, firstx, firsty, 1, g.getColor());
-						edit=true;
+						MyShape.drawline(g, x1, y1, firstx, firsty, 1, forecolor);
+						//edit=true;
 					}
 					polygon=null;
+				}
+			}
+		}
+		else {//如果点击的地方满足某个图形的方程(在附近),则设置当前图形为curshape
+			if(this.cursor==crisscross&&(polygon==null||start==false)) {//鼠标形状是crisscross且当前没有在画多边形或当前多边形start==false
+				int tmplen=shapes.size();
+				for(int i=0;i<tmplen;i++) {
+					MyShape tmpshape=shapes.get(i);
+					if(tmpshape.inboarder(x2, y2)) {
+						curshape=tmpshape;
+						polygon=null;
+						return;
+					}
 				}
 			}
 		}
@@ -146,18 +128,15 @@ class DrawPanel extends JPanel implements MouseListener, MouseMotionListener{
 	public void mousePressed(MouseEvent e) {
 		// TODO 自动生成的方法存根
 		if(this.getCursor()==crisscross) {
-			//设置颜色
-			g.setColor(forecolorbutton.getBackground());
-			g.setFont(fontlabel.getFont());
-			if(!ContentPanel.Polygonflag) {
+			if(!ContentPanel.Polygonflag) {  //不是画多边形
 				x1=e.getX();
 				y1=e.getY();
 			}
-			else {
-				if(polygon==null) {
+			else {//画多边形
+				if(polygon==null) {  //还没开始画
 					x1=e.getX();
 					y1=e.getY();
-					polygon=new MyPolygon(g.getFont().getSize(),g.getColor());
+					polygon=new MyPolygon(fontsize,forecolor);
 					polygon.addpoint(new MyPoint(x1, y1));
 					firstx=minx=maxx=x1;
 					firsty=miny=maxy=y1;
@@ -165,7 +144,7 @@ class DrawPanel extends JPanel implements MouseListener, MouseMotionListener{
 				}
 			}
 		}
-		else if(curshape!=null) {
+		else if(curshape!=null) { //处于编辑状态并且当前图形不为空
 			edit=true;
 			x1=e.getX();
 			y1=e.getY();
@@ -180,52 +159,53 @@ class DrawPanel extends JPanel implements MouseListener, MouseMotionListener{
 		if(e.isPopupTrigger())
 			fpm.show(e.getComponent(), x2, y2);
 		else {
+			if(x1==x2&&y1==y2)
+				return;
+			//if(!edit&&this.getCursor()==crisscross) {   //不处于编辑状态,处于画图状态
 			if(!edit) {
-				if(x1==x2&&y1==y2)
-					return;
-				if(!ContentPanel.Polygonflag) {
+				if(!ContentPanel.Polygonflag) {   //不是画多边形
 					@SuppressWarnings("rawtypes")
-					Class type=shapebutton.shape.getClass();
+					Class type=shape.getClass();
 					MyShape shape=null;
 					int minx=Math.min(x1, x2);
 					int miny=Math.min(y1, y2);
 					int	maxx=Math.max(x1, x2);
 					int maxy=Math.max(y1, y2);
 					if(type==MyLine.class)
-						shape=new MyLine(new MyPoint(x1, y1), new MyPoint(x2, y2), g.getFont().getSize(), g.getColor());
+						shape=new MyLine(new MyPoint(x1, y1), new MyPoint(x2, y2), fontsize, forecolor);
 					else if(type==MyRectangle.class)
-						shape=new MyRectangle(new MyPoint(minx, miny), new MyPoint(maxx, maxy), g.getFont().getSize(), g.getColor());
+						shape=new MyRectangle(new MyPoint(minx, miny), new MyPoint(maxx, maxy), fontsize, forecolor);
 					else if(type==MyCircle.class) {
 						int r=(int)Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
-						shape=new MyCircle(new MyPoint(x1, y1), r, g.getFont().getSize(), g.getColor());
+						shape=new MyCircle(new MyPoint(x1, y1), r, fontsize, forecolor);
 					}
 					else if(type==MyOval.class)
-						shape=new MyOval(new MyPoint(minx, miny), new MyPoint(maxx, maxy), g.getFont().getSize(), g.getColor());
+						shape=new MyOval(new MyPoint(minx, miny), new MyPoint(maxx, maxy), fontsize, forecolor);
 					if(shape!=null) {
 						shapes.add(shape);
 						shape.draw(g);
 						curshape=shape;
 					}
 				}
-				else if(polygon!=null) {
-					if(!start) {
+				else if(polygon!=null) {    //已经开始画多边形了
+					if(!start) {            //还没有画出任何一条边
 						if(!nearby(firstx,firsty,x2,y2,5)) {//不在起始点的附近
 							start=true;
 							polygon.addpoint(new MyPoint(x2, y2));
-							MyShape.drawline(g, x1, y1, x2, y2, 1, g.getColor());
+							MyShape.drawline(g, x1, y1, x2, y2, fontsize, forecolor);
 							x1=x2;
 							y1=y2;
 							if(x2>maxx) maxx=x2;
-							else if(x2<minx) minx=x2;
+							if(x2<minx) minx=x2;
 							if(y2>maxy) maxy=y2;
-							else if(y2<miny) miny=y2;
+							if(y2<miny) miny=y2;
 						}
 					}
-					else {
+					else {    //已经至少画出了一条边
 						if(nearby(firstx,firsty,x2,y2,5)) {
 							//离初始点很近,完成图形的绘制
-							MyShape.drawline(g, x1, y1, firstx, firsty, 1, g.getColor());
-							polygon.addminmax(new MyPoint(minx, miny), new MyPoint(maxx, maxy));
+							MyShape.drawline(g, x1, y1, firstx, firsty, fontsize, forecolor);
+							polygon.addminmax();
 							shapes.add(polygon);
 							curshape=polygon;
 							polygon=null;
@@ -233,20 +213,122 @@ class DrawPanel extends JPanel implements MouseListener, MouseMotionListener{
 						else {//添加新点
 							MyPoint point=new MyPoint(x2,y2);
 							polygon.addpoint(point);
-							MyShape.drawline(g, x1, y1, x2, y2, 1, g.getColor());
+							MyShape.drawline(g, x1, y1, x2, y2, fontsize, forecolor);
 							x1=x2;
 							y1=y2;
 							if(x2>maxx) maxx=x2;
-							else if(x2<minx) minx=x2;
+							if(x2<minx) minx=x2;
 							if(y2>maxy) maxy=y2;
-							else if(y2<miny) miny=y2;
+							if(y2<miny) miny=y2;
 						}
 					}
 				}
 			}
-			else {//处于编辑的状态
+			else if(edit){   //处于编辑的状态
 				if(this.getCursor()==move) //移动
 					curshape.move(x2-x1, y2-y1);
+				else {
+					if(curshape.getClass()==MyPolygon.class&&cursor==hand)
+						((MyPolygon)(curshape)).changepoint(index, x2, y2);
+					curshape.changeshape(cursor, x2, y2);
+				}
+				curshape.draw(g);
+				edit=false;      //已经编辑完毕
+			}
+		}
+	}
+	
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO 自动生成的方法存根
+		//@SuppressWarnings("rawtypes")
+		//Class shapetype=shape.getClass();
+		//if(shapetype==MyLine.class||shapetype==MyRectangle.class||shapetype==MyOval.class||shapetype==MyCircle.class||shapetype==MyPolygon.class)
+		//	this.setCursor(crisscross);
+	}
+	
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO 自动生成的方法存根
+		location.setText("");
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		// TODO 自动生成的方法存根
+		xpos=e.getX();
+		ypos=e.getY();
+		location.setText("坐标:" + xpos + "," + ypos);
+		
+		/*repaint();
+		x2=e.getX();
+		y2=e.getY();
+		if(e.isPopupTrigger())
+			fpm.show(e.getComponent(), x2, y2);
+		else {
+			if(!edit&&this.getCursor()==crisscross) {   //不处于编辑状态,处于画图状态
+				if(!ContentPanel.Polygonflag) {   //不是画多边形
+					@SuppressWarnings("rawtypes")
+					Class type=shape.getClass();
+					int minx=Math.min(x1, x2);
+					int miny=Math.min(y1, y2);
+					int	maxx=Math.max(x1, x2);
+					int maxy=Math.max(y1, y2);
+					if(type==MyLine.class)
+						MyShape.drawline(g, x1, y1, x2, y2, fontsize, forecolor);
+						//shape=new MyLine(new MyPoint(x1, y1), new MyPoint(x2, y2), fontsize, forecolor);
+					else if(type==MyRectangle.class)
+						MyShape.drawrectangle(g, minx, miny, maxx, maxy, fontsize, forecolor);
+						//shape=new MyRectangle(new MyPoint(minx, miny), new MyPoint(maxx, maxy), fontsize, forecolor);
+					else if(type==MyCircle.class) {
+						int r=(int)Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+						MyShape.drawcircle(g, x1, y1, r, fontsize, forecolor);
+						//shape=new MyCircle(new MyPoint(x1, y1), r, fontsize, forecolor);
+					}
+					else if(type==MyOval.class)
+						MyShape.drawoval(g, minx, miny, maxx, maxy, fontsize, forecolor);
+						//shape=new MyOval(new MyPoint(minx, miny), new MyPoint(maxx, maxy), fontsize, forecolor);
+				}
+				else if(polygon!=null) {    //已经开始画多边形了
+					if(!start) {            //还没有画出任何一条边
+						if(!nearby(firstx,firsty,x2,y2,5)) {//不在起始点的附近
+							start=true;
+							MyShape.drawline(g, x1, y1, x2, y2, fontsize, forecolor);
+						}
+					}
+					else {    //已经至少画出了一条边
+						//画之前的边
+						@SuppressWarnings("unchecked")
+						ArrayList<MyPoint> points=(ArrayList<MyPoint>)polygon.parameter.get(2);
+						int tmplen=points.size();
+						if(tmplen>1) {
+							MyPoint firstpoint=points.get(0);
+							int tmpfirstx,tmpfirsty,tmpx1,tmpy1,tmpx2=0,tmpy2=0;
+							tmpfirstx=tmpx1=firstpoint.x;
+							tmpfirsty=tmpy1=firstpoint.y;
+							for(int i=1;i<tmplen;i++) {
+								MyPoint tmppoint=points.get(i);
+								tmpx2=tmppoint.x;
+								tmpy2=tmppoint.y;
+								MyShape.drawline(g, tmpx1, tmpy1, tmpx2, tmpy2, fontsize, forecolor);
+							}
+						}
+						if(nearby(firstx,firsty,x2,y2,5)) {
+							//离初始点很近,完成图形的绘制
+							MyShape.drawline(g, x1, y1, firstx, firsty, fontsize, forecolor);
+						}
+						else {//添加新点
+							MyShape.drawline(g, x1, y1, x2, y2, fontsize, forecolor);
+						}
+					}
+				}
+			}
+			else if(edit){   //处于编辑的状态
+				if(this.getCursor()==move) {//移动
+					curshape.move(x2-x1, y2-y1);
+					x1=x2;
+					y1=y2;
+				}
 				else if(this.getCursor()==hand)
 					((MyPolygon)curshape).changepoint(index, x2, y2);
 				else if(this.getCursor()==leftupexpansion) //向左上扩张
@@ -266,68 +348,8 @@ class DrawPanel extends JPanel implements MouseListener, MouseMotionListener{
 				else if(this.getCursor()==leftexpansion) //向左扩张
 					curshape.leftexpansion(x2);
 				curshape.draw(g);
-				edit=false;
-			}
-		}
-	}
-	
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO 自动生成的方法存根
-		@SuppressWarnings("rawtypes")
-		Class shapetype=shapebutton.shape.getClass();
-		if(shapetype==MyLine.class||shapetype==MyRectangle.class||shapetype==MyOval.class||shapetype==MyCircle.class||shapetype==MyPolygon.class)
-			this.setCursor(crisscross);
-	}
-	
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO 自动生成的方法存根
-		location.setText("");
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		// TODO 自动生成的方法存根
-		xpos=e.getX();
-		ypos=e.getY();
-		location.setText("坐标:" + xpos + "," + ypos);
-		
-		//判断当前鼠标的形状和curshape,如果不是crisscross,curshape不为空,则是对当前图形进行编辑
-		//暂时不实现拖动,用鼠标释放来
-		/*Cursor cursor=this.getCursor();
-		if(cursor!=crisscross&&curshape!=null) {
-			//移动图形或者编辑图形
-			if(curshape.getClass()==MyLine.class) {
-				
-			}
-			else if(curshape.getClass()==MyRectangle.class) {
-				
-			}
-			else if(curshape.getClass()==MyCircle.class) {
-				
-			}
-			else if(curshape.getClass()==MyOval.class) {
-				
 			}
 		}*/
-		//repaint();
-		//shapebutton.shape.draw(g, x1, y1, x2, y2, 1);
-		//g.drawLine(x1, y1, x2, y2);
-		//g.dr
-		//Graphics g=new Graphics();
-		//画直线
-		
-		
-		//画其他图形
-		
-		
-		//铅笔画线
-		//g.drawLine(x1, y1, x2, y2);
-		//repaint();
-		//shapebutton.shape.draw(g, x1, y1, x2, y2);
-		/*x1=x2;
-		y1=y2;*/
 	}
 
 	private boolean nearby(int x1, int y1, int x2, int y2, int dis) {
@@ -342,102 +364,15 @@ class DrawPanel extends JPanel implements MouseListener, MouseMotionListener{
 		ypos=e.getY();
 		location.setText("坐标:"+xpos+","+ypos);
 		if(curshape!=null) {
-			//判断鼠标位置是否在当前图形的端点周围
-			@SuppressWarnings("rawtypes")
-			Class c=curshape.getClass();
-			if(c==MyLine.class) {
-				MyPoint point1=(MyPoint)curshape.parameter.get(0);
-				MyPoint point2=(MyPoint)curshape.parameter.get(1);
-				int point1x=point1.x;
-				int point1y=point1.y;
-				int point2x=point2.x;
-				int point2y=point2.y;
-				if(nearby(point1x, point1y, xpos, ypos, 5))
-					this.setCursor(leftdownexpansion);
-				else if(nearby(point2x, point2y, xpos, ypos, 5))
-					this.setCursor(rightupexpansion);
-				else if(curshape.ininternal(xpos, ypos))
-					this.setCursor(move);
-				else
-					this.setCursor(crisscross);
-			}
-			else {
-				int meanx=0,meany=0,minx=0,miny=0,maxx=0,maxy=0;
-				if(c==MyCircle.class) {
-					MyPoint point0=(MyPoint)curshape.parameter.get(0);
-					int r=(int)curshape.parameter.get(1);
-					meanx=point0.x;
-					meany=point0.y;
-					minx=meanx-r;
-					maxx=meanx+r;
-					miny=meany-r;
-					maxy=meany+r;
-					if(((MyCircle)curshape).inleftup(xpos, ypos))
-						this.setCursor(leftupexpansion);
-					else if(((MyCircle)curshape).inrightup(xpos, ypos))
-						this.setCursor(rightupexpansion);
-					else if(((MyCircle)curshape).inrightdown(xpos, ypos))
-						this.setCursor(rightdownexpansion);
-					else if(((MyCircle)curshape).inleftdown(xpos, ypos))
-						this.setCursor(leftdownexpansion);
-					else if(curshape.ininternal(xpos, ypos))
-						this.setCursor(move);
-					else
-						this.setCursor(crisscross);
-					return;
-				}
-				else if(c==MyOval.class||c==MyRectangle.class){//暂且有椭圆、矩形
-					MyPoint pointmin=(MyPoint)curshape.parameter.get(0);
-					MyPoint pointmax=(MyPoint)curshape.parameter.get(1);
-					minx=pointmin.x;
-					miny=pointmin.y;
-					maxx=pointmax.x;
-					maxy=pointmax.y;
-					meanx=(minx+maxx)/2;
-					meany=(miny+maxy)/2;
-				}
-				else if(c==MyPolygon.class) {//总共4个点4条边
-					MyPoint pointmin=(MyPoint)curshape.parameter.get(3);
-					MyPoint pointmax=(MyPoint)curshape.parameter.get(4);
-					minx=pointmin.x;
-					miny=pointmin.y;
-					maxx=pointmax.x;
-					maxy=pointmax.y;
-					meanx=(minx+maxx)/2;
-					meany=(miny+maxy)/2;
-					@SuppressWarnings("unchecked")
-					ArrayList<MyPoint> points=(ArrayList<MyPoint>)curshape.parameter.get(2);
-					int len=points.size();
-					for(int i=0;i<len;i++) {
-						MyPoint curpoint=points.get(i);
-						if(nearby(curpoint.x,curpoint.y,xpos,ypos,5)) {
-							this.setCursor(hand);
-							index=i;
-							return;
-						}
-					}
-				}
-				if(nearby(minx,miny,xpos,ypos,5))
-					this.setCursor(leftupexpansion);
-				else if(nearby(maxx,miny,xpos,ypos,5))
-					this.setCursor(rightupexpansion);
-				else if(nearby(maxx,maxy,xpos,ypos,5))
-					this.setCursor(rightdownexpansion);
-				else if(nearby(minx,maxy,xpos,ypos,5))
-					this.setCursor(leftdownexpansion);
-				else if(nearby(meanx,miny,xpos,ypos,5))
-					this.setCursor(upexpansion);
-				else if(nearby(maxx,meany,xpos,ypos,5))
-					this.setCursor(rightexpansion);
-				else if(nearby(meanx,maxy,xpos,ypos,5))
-					this.setCursor(downexpansion);
-				else if(nearby(minx,meany,xpos,ypos,5))
-					this.setCursor(leftexpansion);
-				else if(curshape.ininternal(xpos, ypos))
-					this.setCursor(move);
-				else
-					this.setCursor(crisscross);
-			}
+			cursor=curshape.getCursor(xpos, ypos);
+			if(curshape.getClass()==MyPolygon.class&&cursor==hand)
+				index=((MyPolygon)(curshape)).nearindex(xpos,ypos);
+			this.setCursor(cursor);
+		}
+		else {
+			//当前没有图形
+			cursor=crisscross;
+			this.setCursor(cursor);
 		}
 	}
 	
