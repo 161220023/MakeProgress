@@ -3,6 +3,8 @@ package frame;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import shape.MyPaintBucket;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -39,7 +41,12 @@ public class ColorToolBar extends JToolBar{
 
 	JButton editcolor;
 	
-	ColorToolBar(){
+	ContentPanel contpa;
+	
+	ColorToolBar(ContentPanel contpa){
+		
+		this.contpa=contpa;
+		
 		//初始化
 		foregroundcolorbutton=new JButton();
 		space=new JLabel();
@@ -104,10 +111,10 @@ public class ColorToolBar extends JToolBar{
 		//给编辑颜色按钮添加事件
 		editcolor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Color color=JColorChooser.showDialog(new ColorToolBar(), "编辑颜色", Color.BLACK);
+				Color color=JColorChooser.showDialog(contpa, "编辑颜色", Color.BLACK);
 				foregroundcolorbutton.setBackground(color);
 				modifycurshapecolor(color);
-				ContentPanel.forecolor=color;
+				contpa.forecolor=color;
 			}
 		});
 		
@@ -124,16 +131,17 @@ public class ColorToolBar extends JToolBar{
 	}
 	
 	void modifycurshapecolor(Color color) {
-		if(ContentPanel.curshape!=null)
-			ContentPanel.curshape.changecolor(color);
+		if(contpa.curshape!=null)
+			contpa.curshape.changecolor(color);
 	}
 	
 	void addButtonListener(ColorButton cb) {
 		cb.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				foregroundcolorbutton.setBackground(cb.color);
-				modifycurshapecolor(cb.color);
-				ContentPanel.forecolor=cb.color;
+				if(contpa.shape.getClass()!=MyPaintBucket.class)
+					modifycurshapecolor(cb.color);
+				contpa.forecolor=cb.color;
 			}
 		});
 		cb.addMouseListener(new MouseAdapter() {

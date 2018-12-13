@@ -9,16 +9,16 @@ import java.util.ArrayList;
 
 @SuppressWarnings("serial")
 public class ContentPanel extends JPanel implements MouseListener, MouseMotionListener {
-	public static boolean Polygonflag=false; //是否要画多边形
-	public static boolean bsplinecurveflag=false;//是否要画B样条曲线
-	public static Color forecolor=null;      //颜色
-	public static MyShape shape=null;        //画的形状
+	public boolean Polygonflag=false; //是否要画多边形
+	public boolean bsplinecurveflag=false;//是否要画B样条曲线
+	public Color forecolor=null;      //颜色
+	public MyShape shape=null;        //画的形状
 	//public static Font font=null;            //字体
-	public static MyShape curshape=null;	 //当前形状
-	public static int fontsize=0;            //线粗细
-	public static MyPolygon polygon=null;           //当前是否在画多边形
-	public static MyBSplineCurve bcurve=null;       //当前是否在画B样条曲线
-	Graphics g;
+	public MyShape curshape=null;	 //当前形状
+	public int fontsize=0;            //线粗细
+	public MyPolygon polygon=null;           //当前是否在画多边形
+	public MyBSplineCurve bcurve=null;       //当前是否在画B样条曲线
+	Graphics2D g;
 	
 	FilePopMenu fpm;
 
@@ -46,7 +46,9 @@ public class ContentPanel extends JPanel implements MouseListener, MouseMotionLi
 	public static Cursor hand=new Cursor(12);				//手形
 	public static Cursor move=new Cursor(13);				//移动
 	public static Toolkit tk=Toolkit.getDefaultToolkit();
-	static Image cimage=tk.getImage("E:\\eclipse_workspace\\Graphic\\bin\\frame\\additions\\rotate.png");
+	@SuppressWarnings("rawtypes")
+	static Class cl=ContentPanel.class;
+	static Image cimage=tk.getImage(cl.getResource("additions/rotate.png"));
 	public static Cursor rotate = tk.createCustomCursor(cimage, new Point(30, 30), "norm");
 	
 	
@@ -67,12 +69,10 @@ public class ContentPanel extends JPanel implements MouseListener, MouseMotionLi
 		
 		this.setBackground(Color.WHITE);
 		this.setSize(new Dimension(726,350));
-		
-		//tk=Toolkit.getDefaultToolkit();
 	}
 	
 	public void initial() {
-		g=this.getGraphics();
+		g=(Graphics2D)this.getGraphics();
 		
 	}
 	
@@ -94,7 +94,7 @@ public class ContentPanel extends JPanel implements MouseListener, MouseMotionLi
 		//点之后没有移动然后释放是为点击
 		//先press,后release,最后click
 		if(e.getClickCount()==2) {//双击生成多边形
-			if(ContentPanel.Polygonflag) {    //当前选择的图形是多边形
+			if(Polygonflag) {    //当前选择的图形是多边形
 				if(polygon!=null) {           //当前正在画多边形
 					//判断点集大小是否超过1
 					int len=polygon.countpoints();
@@ -127,8 +127,22 @@ public class ContentPanel extends JPanel implements MouseListener, MouseMotionLi
 	@Override
 	public void mousePressed(MouseEvent e) {
 		// TODO 自动生成的方法存根
+		if(shape.getClass()==MyPaintBucket.class) {
+			x1=e.getX();
+			y1=e.getY();
+			int len=shapes.size();
+			for(int i=0;i<len;i++) {
+				MyShape tmpshape=shapes.get(i);
+				if(tmpshape.ininternal(x1, y1)) {
+					tmpshape.fillup(forecolor, g);
+					curshape=tmpshape;
+					return;
+				}
+			}
+			return;
+		}
 		if(this.getCursor()==crisscross) {
-			if(!ContentPanel.Polygonflag) {  //不是画多边形
+			if(!Polygonflag) {  //不是画多边形
 				x1=e.getX();
 				y1=e.getY();
 			}
@@ -154,6 +168,7 @@ public class ContentPanel extends JPanel implements MouseListener, MouseMotionLi
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		// TODO 自动生成的方法存根
+		repaint();
 		x2=e.getX();
 		y2=e.getY();
 		if(e.isPopupTrigger())
@@ -163,7 +178,7 @@ public class ContentPanel extends JPanel implements MouseListener, MouseMotionLi
 				return;
 			//if(!edit&&this.getCursor()==crisscross) {   //不处于编辑状态,处于画图状态
 			if(!edit) {
-				if(!ContentPanel.Polygonflag) {   //不是画多边形
+				if(!Polygonflag) {   //不是画多边形
 					@SuppressWarnings("rawtypes")
 					Class type=shape.getClass();
 					MyShape shape=null;
@@ -259,6 +274,7 @@ public class ContentPanel extends JPanel implements MouseListener, MouseMotionLi
 		xpos=e.getX();
 		ypos=e.getY();
 		location.setText("坐标:" + xpos + "," + ypos);
+		//repaint();
 		
 		/*repaint();
 		x2=e.getX();
@@ -376,4 +392,23 @@ public class ContentPanel extends JPanel implements MouseListener, MouseMotionLi
 		}
 	}
 	
+	public void savepic() {//保存
+		//如果已有文件的url则保存至原文件
+		//如果没有则"另存为"
+		
+	}
+	
+	public void newfile() {//新建
+		//如果当前已经有未保存的文件,询问用户是否要保存,若是则调用savepic
+		//清空画布内容
+	}
+	
+	public void saveas() {//另存为
+		//打开文件对话框,让用户选择保存在哪里
+	}
+	
+	public void open() {//打开文件
+		//打开之前判断是否有未经保存的文件,若有则询问用户是否保存,若是则调用savepic
+		//清空画布,打开文件对话框让用户选择文件
+	}
 }

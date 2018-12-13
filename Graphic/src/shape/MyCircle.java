@@ -11,7 +11,8 @@ public class MyCircle extends MyShape{
 	MyPoint point0;
 	int r;
 	int pounds;
-	Color color;
+	Color bordercolor;
+	Color innercolor;
 	
 	public MyCircle() {
 		
@@ -21,7 +22,7 @@ public class MyCircle extends MyShape{
 		this.point0=point0;
 		this.r=r;
 		this.pounds=pounds;
-		this.color=color;
+		this.bordercolor=color;
 	}
 	
 	@Override
@@ -31,7 +32,40 @@ public class MyCircle extends MyShape{
 	
 	@Override
 	public void changecolor(Color color) {
-		this.color=color;
+		this.bordercolor=color;
+	}
+	
+	@Override
+	void fill(Graphics g) {
+		if(innercolor==null) return;
+		Color precolor=g.getColor();
+		g.setColor(innercolor);
+		
+		int x0=point0.x, y0=point0.y;
+		int x=0,y=r;
+		int e=1-r;
+		g.drawLine(-y+x0+1, x+y0, y+x0-1, x+y0);  //(y,x)
+		while(x<y) {
+			if(e<0)//取右点
+				e=e+x+x+1;
+			else {//取右下点
+				e=e+x+x-y-y+3;
+				y--;
+			}
+			x++;
+			g.drawLine(-x+x0+1, y+y0, x+x0-1, y+y0);
+			g.drawLine(-x+x0+1, -y+y0, x+x0-1, -y+y0);
+			g.drawLine(-y+x0+1, x+y0, y+x0-1, x+y0);
+			g.drawLine(-y+x0+1, -x+y0, y+x0-1, -x+y0);
+			
+		}
+		
+		g.setColor(precolor);
+	}
+	
+	public void fillup(Color color,Graphics g) {
+		innercolor=color;
+		draw(g);
 	}
 	
 	public Cursor getCursor(int x, int y) {
@@ -147,6 +181,7 @@ public class MyCircle extends MyShape{
 	public void draw(Graphics g) {
 		int x0=point0.x;
 		int y0=point0.y;
-		MyShape.drawcircle(g, x0, y0, r, pounds, color);
+		fill(g);
+		MyShape.drawcircle(g, x0, y0, r, pounds, bordercolor);
 	}
 }

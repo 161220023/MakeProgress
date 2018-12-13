@@ -17,6 +17,18 @@ class MyScale{
 	}
 }
 
+class MyEdge{
+	int number;
+	int startx;
+	int starty;
+	double m;
+}
+
+class TwoEdges{
+	MyEdge preedge;
+	MyEdge aftedge;
+}
+
 public class MyPolygon extends MyShape {
 
 	ArrayList<MyPoint> points;
@@ -24,16 +36,19 @@ public class MyPolygon extends MyShape {
 	MyPoint point1,point2,point3,point4;//外接矩形的坐标,会随着旋转而改变
 	double angle;  //外接矩形中心点与p1,p2中点连线与x轴夹角
 	int pounds;
-	Color color;
+	Color bordercolor;
+	Color innercolor;
+	
+	//static int inf=0x7fffffff;
 	
 	public MyPolygon(){//pounds, color, arraylist<MyPoint>, MyPoint(minx, miny), MyPoint(maxx, maxy), ArrayList<double>(scale)
 		//各点按照顺序形成边
 	}
 	
 	public MyPolygon(int pounds, Color color){
-		angle=pi/2;
+		angle=3*pi/2;
 		this.pounds=pounds;
-		this.color=color;
+		this.bordercolor=color;
 		points=new ArrayList<MyPoint>();
 		scales=new ArrayList<MyScale>();
 	}
@@ -49,7 +64,139 @@ public class MyPolygon extends MyShape {
 	
 	@Override
 	public void changecolor(Color color) {
-		this.color=color;
+		this.bordercolor=color;
+	}
+	
+	static void fill(Graphics g, Color innercolor, ArrayList<MyPoint> points) {
+		if(innercolor==null) return;
+		//先计算各个顶点的y值排序(连带顶点),用队列储存
+		//按照顺序判断每个顶点(队列中的每个元素)连接的哪两条边(边号),每条边的斜率分别是什么,该顶点的x值是什么,并储存在队列中
+		//对每个[yi+1,y(i+1)-1]范围,处理第yi个顶点连接的两条边(如果有一条边已经存在于list中,则判断该顶点连接的另一条边的另一个顶点y值是否大于yi+1,若是则用该边替换list中的边,否则将两条边加入list)形成list边表
+		//对于相同的y(i+1)要连续处理,每个点都要判断连接的边进行添减
+		//判断某条边的斜率是否为0,若为0,则其斜率储存为一个很大的数(在处理后续y(i+1)的时候会将此边删除)
+		ArrayList<Integer> y=new ArrayList<>();
+		ArrayList<TwoEdges> edges=new ArrayList<>();
+		int len=points.size();
+		for(int i=0;i<len;i++) {
+			MyPoint tmppoint=points.get(i);
+			TwoEdges twoedges=new TwoEdges();
+			MyEdge preedge=new MyEdge();
+			MyEdge aftedge=new MyEdge();
+			MyPoint prepoint,aftpoint;
+			preedge.number=i-1;
+			aftedge.number=i;
+			if(i==0) {
+				preedge.number=len-1;
+				prepoint=points.get(len-1);
+				aftpoint=points.get(i+1);
+			}
+			else if(i==len-1){
+				prepoint=points.get(i-1);
+				aftpoint=points.get(0);
+			}
+			else {
+				prepoint=points.get(i-1);
+				aftpoint=points.get(i+1);
+			}
+			int prex=prepoint.x, prey=prepoint.y;
+			int aftx=aftpoint.x, afty=aftpoint.y;
+			int curx=tmppoint.x, cury=tmppoint.y;
+			preedge.startx=aftedge.startx=curx;
+			preedge.starty=aftedge.starty=cury;
+			if(prepoint.y==tmppoint.y) preedge.m=inf;
+			else preedge.m=((double)(prex-curx))/(prey-cury);
+			if(aftpoint.y==tmppoint.y) aftedge.m=inf;
+			else aftedge.m=((double)(curx-aftx))/(cury-afty);
+			twoedges.preedge=preedge;
+			twoedges.aftedge=aftedge;
+			edges.add(twoedges);
+			Integer tmpy=tmppoint.y;
+			y.add(tmpy);
+		}
+		sort(y,edges);
+		ArrayList<MyEdge> edgelist=new ArrayList<>();
+		int yi,yi1;
+		int ymax=y.get(len-1);
+		int i=0;
+		
+		Color precolor=g.getColor();
+		g.setColor(innercolor);
+		while(i<len) {
+			yi=y.get(i);
+			if(yi==ymax) break;
+			yi1=yi;
+			while(yi1==yi) {
+				int size=edgelist.size();
+				TwoEdges twoedge=edges.get(i);
+				MyEdge leftedge=twoedge.preedge;
+				MyEdge rightedge=twoedge.aftedge;
+				int number1=leftedge.number;
+				int number2=rightedge.number;
+				int j1=-1,j2=-1,j;
+				for(j=0;j<size;j++) {
+					MyEdge tmpedge=edgelist.get(j);
+					if(number1==tmpedge.number) j1=j;
+					if(number2==tmpedge.number) j2=j;
+				}
+				if(j1>=0&&j2>=0) {
+					if(j1<j2) {
+						edgelist.remove(j2);
+						edgelist.remove(j1);
+					}
+					else {
+						edgelist.remove(j1);
+						edgelist.remove(j2);
+					}
+				}
+				else if(j1>=0) {
+					edgelist.remove(j1);
+					edgelist.add(j1, rightedge);
+				}
+				else if(j2>=0) {
+					edgelist.remove(j2);
+					edgelist.add(j2, leftedge);
+				}
+				else {
+					edgelist.add(leftedge);
+					edgelist.add(rightedge);
+				}
+				i++;
+				yi1=y.get(i);
+			}
+			//[yi+1,yi1]范围内填充
+			int size=edgelist.size();
+			double[] m=new double[size];
+			double[] tmpx=new double[size];
+			for(int k=0;k<size;k+=2) {
+				MyEdge preedge=edgelist.get(k);
+				MyEdge aftedge=edgelist.get(k+1);
+				m[k]=preedge.m;
+				m[k+1]=aftedge.m;
+				tmpx[k]=preedge.startx+m[k]*(yi-preedge.starty);
+				tmpx[k+1]=aftedge.startx+m[k+1]*(yi-aftedge.starty);
+			}
+			double[] tmptmpx=new double[size];
+			for(int j=yi+1;j<=yi1;j++) {
+				for(int k=0;k<size;k+=2) {
+					tmpx[k]+=m[k];
+					tmpx[k+1]+=m[k+1];
+					tmptmpx[k]=tmpx[k];
+					tmptmpx[k+1]=tmpx[k+1];
+				}
+				//对tmptmpx[size]排个序
+				sort(tmptmpx);
+				for(int k=0;k<size;k+=2)
+					g.drawLine((int)tmptmpx[k], j, (int)tmptmpx[k+1], j);
+			}
+		}
+		g.setColor(precolor);
+	}
+
+	@Override
+	public void fillup(Color color, Graphics g) {
+		innercolor=color;
+		//fill(g,innercolor,points);
+		draw(g);
 	}
 	
 	public Cursor getCursor(int x, int y) {
@@ -82,7 +229,8 @@ public class MyPolygon extends MyShape {
 			}
 			if(ininternal(x,y))
 				return ContentPanel.move;
-			//还有旋转
+			else if(inrotate(x,y,point1,point2,angle))
+				return ContentPanel.rotate;
 			return ContentPanel.crisscross;
 		}
 	}
@@ -114,10 +262,18 @@ public class MyPolygon extends MyShape {
 			downexpansion(x,y);
 		else if(cursor==ContentPanel.leftexpansion)
 			leftexpansion(x,y);
-		//移动顶点不包括在内
-		//else if(cursor==ContentPanel.move)
-		//	move(x,y);
 		//还有旋转
+		else if(cursor==ContentPanel.rotate) {
+			//以(x,y)与(x0,y0)的夹角为angle
+			int x1=point1.x, y1=point1.y;
+			int x3=point3.x, y3=point3.y;
+			double x0=((double)x1+x3)/2, y0=((double)y1+y3)/2;
+			if(x==x0&&y==y0) return;
+			double tmp=Math.sqrt((x-x0)*(x-x0)+(y-y0)*(y-y0));
+			double theta=Math.acos((x-x0)/tmp);
+			if(y<y0) theta=2*pi-theta;
+			rotate(theta);
+		}
 	}
 	
 	public void addpoint(MyPoint point) {
@@ -169,28 +325,28 @@ public class MyPolygon extends MyShape {
 		MyPoint p14=MyRectangle.intersection(a1, b1, c1, a2, b2, c4);
 		MyPoint p24=MyRectangle.intersection(a1, b1, c2, a2, b2, c4);
 		if(angle>=0&&angle<=pi/2) {
-			point1=p13;
-			point2=p23;
-			point3=p24;
-			point4=p14;
+			point1=p14;
+			point2=p24;
+			point3=p23;
+			point4=p13;
 		}
 		else if(angle>pi/2&&angle<=pi) {
-			point1=p23;
-			point2=p13;
-			point3=p14;
-			point4=p24;
-		}
-		else if(angle>pi&&angle<=3*pi/2) {
 			point1=p24;
 			point2=p14;
 			point3=p13;
 			point4=p23;
 		}
+		else if(angle>pi&&angle<=3*pi/2) {
+			point1=p23;
+			point2=p13;
+			point3=p14;
+			point4=p24;
+		}
 		else {
-			point1=p14;
-			point2=p24;
-			point3=p23;
-			point4=p13;
+			point1=p13;
+			point2=p23;
+			point3=p24;
+			point4=p14;
 		}
 	}
 	
@@ -205,8 +361,7 @@ public class MyPolygon extends MyShape {
 		double d12=Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 		double d14=Math.sqrt((x1-x4)*(x1-x4)+(y1-y4)*(y1-y4));
 		double theta12=angle+pi/2;
-		if(theta12>=2*pi)
-			theta12-=2*pi;
+		if(theta12>=2*pi) theta12-=2*pi;
 		double theta14=angle;
 		double a12,a14,b12,b14,c12,c14;
 		if(Math.abs(theta12-pi/2)<1e-5||Math.abs(theta12-3*pi/2)<1e-5) {
@@ -304,6 +459,39 @@ public class MyPolygon extends MyShape {
 			return false;
 		else
 			return true;
+	}
+	
+	@Override
+	public void rotate(double theta) {
+		//外接矩形旋转，各个点旋转，绕着中心点
+		while(theta>=2*pi) theta-=2*pi;
+		while(theta<0) theta+=2*pi;
+		//各个点顺时针旋转theta-angle
+		double deltatheta=theta-angle;
+		angle=theta;
+		
+		int x1=point1.x, y1=point1.y;
+		int x2=point2.x, y2=point2.y;
+		int x3=point3.x, y3=point3.y;
+		int x4=point4.x, y4=point4.y;
+		double x0=((double)x1+x3)/2, y0=((double)y1+y3)/2;
+		double costheta=Math.cos(deltatheta);
+		double sintheta=Math.sin(deltatheta);
+		point1.x=(int)(x0+(x1-x0)*costheta+(y0-y1)*sintheta);
+		point1.y=(int)(y0+(x1-x0)*sintheta+(y1-y0)*costheta);
+		point2.x=(int)(x0+(x2-x0)*costheta+(y0-y2)*sintheta);
+		point2.y=(int)(y0+(x2-x0)*sintheta+(y2-y0)*costheta);
+		point3.x=(int)(x0+(x3-x0)*costheta+(y0-y3)*sintheta);
+		point3.y=(int)(y0+(x3-x0)*sintheta+(y3-y0)*costheta);
+		point4.x=(int)(x0+(x4-x0)*costheta+(y0-y4)*sintheta);
+		point4.y=(int)(y0+(x4-x0)*sintheta+(y4-y0)*costheta);
+		int len=points.size();
+		for(int i=0;i<len;i++) {
+			MyPoint curpoint=points.get(i);
+			int curx=curpoint.x, cury=curpoint.y;
+			curpoint.x=(int)(x0+(curx-x0)*costheta+(y0-cury)*sintheta);
+			curpoint.y=(int)(y0+(curx-x0)*sintheta+(cury-y0)*costheta);
+		}
 	}
 	
 	@Override
@@ -462,6 +650,7 @@ public class MyPolygon extends MyShape {
 	
 	@Override
 	public void draw(Graphics g) {
-		MyShape.drawpolygonborder(g, points, pounds, color);
+		fill(g,innercolor,points);
+		MyShape.drawpolygonborder(g, points, pounds, bordercolor);
 	}
 }

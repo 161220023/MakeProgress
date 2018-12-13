@@ -26,8 +26,7 @@ public class ShapesPanel extends JPanel{
 	ShapeButton pencil;
 	ShapeButton eraser;
 	ShapeButton sampler;
-	//ShapeButton paintbucket;
-	//JButton paintbucket;
+	ShapeButton paintbucket;
 	ShapeButton string;
 	
 	ShapeButton line;
@@ -36,8 +35,16 @@ public class ShapesPanel extends JPanel{
 	ShapeButton oval;
 	ShapeButton polygon;
 	ShapeButton bsplinecurve;
+	
+	Toolkit tk;
+	
+	ContentPanel contpa;
 
-	ShapesPanel(){
+	ShapesPanel(ContentPanel contpa){
+		
+		this.contpa=contpa;
+		
+		tk=Toolkit.getDefaultToolkit();
 		//设置面板背景色
 		this.setBackground(new Color(241,255,255));
 		
@@ -47,7 +54,7 @@ public class ShapesPanel extends JPanel{
 		pencil=new ShapeButton(new MyPencil());
 		eraser=new ShapeButton(new MyEraser());
 		sampler=new ShapeButton(new MySampler());
-		//paintbucket=new ShapeButto
+		paintbucket=new ShapeButton(new MyPaintBucket());
 		string=new ShapeButton(new MyString());
 		
 		line=new ShapeButton(new MyLine());
@@ -62,6 +69,7 @@ public class ShapesPanel extends JPanel{
 		eraser.setPreferredSize(new Dimension(20,20));
 		sampler.setPreferredSize(new Dimension(20,20));
 		string.setPreferredSize(new Dimension(20,20));
+		paintbucket.setPreferredSize(new Dimension(20,20));
 		
 		line.setPreferredSize(new Dimension(20,20));
 		rect.setPreferredSize(new Dimension(20,20));
@@ -72,21 +80,23 @@ public class ShapesPanel extends JPanel{
 		
 		@SuppressWarnings("rawtypes")
 		Class c=getClass();
-		ImageIcon pencilicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/pencil.jpg")));
-		ImageIcon erasericon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/eraser.jpg")));
-		ImageIcon samplericon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/sampler.jpg")));
-		ImageIcon stringicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/string.jpg")));
-		ImageIcon lineicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/line.jpg")));
-		ImageIcon recticon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/rectangle.jpg")));
-		ImageIcon ovalicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/oval.jpg")));
-		ImageIcon circleicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/circle.jpg")));
-		ImageIcon polygonicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/polygon.jpg")));
-		ImageIcon bsplinecurveicon=new ImageIcon(Toolkit.getDefaultToolkit().getImage(c.getResource("/shape/additions/bsplinecurve.jpg")));
+		ImageIcon pencilicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/pencil.jpg")));
+		ImageIcon erasericon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/eraser.jpg")));
+		ImageIcon samplericon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/sampler.jpg")));
+		ImageIcon stringicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/string.jpg")));
+		ImageIcon painticon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/paint.jpg")));
+		ImageIcon lineicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/line.jpg")));
+		ImageIcon recticon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/rectangle.jpg")));
+		ImageIcon ovalicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/oval.jpg")));
+		ImageIcon circleicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/circle.jpg")));
+		ImageIcon polygonicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/polygon.jpg")));
+		ImageIcon bsplinecurveicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/bsplinecurve.jpg")));
 		
 		pencil.setIcon(pencilicon);
 		eraser.setIcon(erasericon);
 		sampler.setIcon(samplericon);
 		string.setIcon(stringicon);
+		paintbucket.setIcon(painticon);
 		
 		line.setIcon(lineicon);
 		rect.setIcon(recticon);
@@ -100,6 +110,7 @@ public class ShapesPanel extends JPanel{
 		eraser.setToolTipText("橡皮擦");
 		sampler.setToolTipText("颜色取样器");
 		string.setToolTipText("文本");
+		paintbucket.setToolTipText("颜料桶");
 		
 		line.setToolTipText("直线");
 		rect.setToolTipText("矩形");
@@ -117,6 +128,7 @@ public class ShapesPanel extends JPanel{
 		bg.add(eraser);
 		bg.add(sampler);
 		bg.add(string);
+		bg.add(paintbucket);
 		
 		bg.add(line);
 		bg.add(rect);
@@ -129,6 +141,7 @@ public class ShapesPanel extends JPanel{
 		add(eraser);
 		add(sampler);
 		add(string);
+		add(paintbucket);
 		
 		add(line);
 		add(rect);
@@ -139,13 +152,14 @@ public class ShapesPanel extends JPanel{
 		
 		//设置默认图形
 		line.setSelected(true);
-		ContentPanel.shape=line.shape;
+		contpa.shape=line.shape;
 		line.setBorder(BorderFactory.createLoweredBevelBorder());
 		
 		//添加事件侦听器
 		actionshape(pencil);
 		actionshape(eraser);
 		actionshape(sampler);
+		actionshape(paintbucket);
 		
 		//要给文本按钮设置选择启用字体面板,未选择禁用字体面板
 		actionshape(string);
@@ -180,22 +194,22 @@ public class ShapesPanel extends JPanel{
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				//如果前一个是polygon则让其闭合或者若没有达到两点之间的距离要求则取消
-				ContentPanel.curshape=null;  //更换形状要设置当前形状为null
-				ContentPanel.polygon=null;   //取消继续画多边形
-				ContentPanel.bcurve=null;    //取消继续画B样条曲线
+				contpa.curshape=null;  //更换形状要设置当前形状为null
+				contpa.polygon=null;   //取消继续画多边形
+				contpa.bcurve=null;    //取消继续画B样条曲线
 				sb.setSelected(true);
 				if(sb.shape instanceof MyPolygon)   //表明要画多边形
-					ContentPanel.Polygonflag=true;
+					contpa.Polygonflag=true;
 				else
-					ContentPanel.Polygonflag=false; //画非多边形
+					contpa.Polygonflag=false; //画非多边形
 				if(sb.shape instanceof MyBSplineCurve)
-					ContentPanel.bsplinecurveflag=true;
+					contpa.bsplinecurveflag=true;
 				else
-					ContentPanel.bsplinecurveflag=false;
+					contpa.bsplinecurveflag=false;
 				sb.setBorder(BorderFactory.createLoweredBevelBorder());
 				
 				//设置面板的图形
-				ContentPanel.shape=sb.shape;
+				contpa.shape=sb.shape;
 				
 				//将同一个组的其他按钮设置为未选中,且重绘默认边框
 				Enumeration<AbstractButton> shapes=bg.getElements();

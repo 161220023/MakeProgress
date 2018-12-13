@@ -1,7 +1,7 @@
 package frame;
 import javax.swing.*;
 import java.awt.*;
-//import java.awt.event.*;
+import java.awt.event.*;
 
 @SuppressWarnings("serial")
 public class MainMenuBar extends JMenuBar{
@@ -14,8 +14,12 @@ public class MainMenuBar extends JMenuBar{
 	JMenuItem operation;
 	JMenuItem helpcontent;
 	
+	ContentPanel contpa;
+	
 	FlowLayout fl;
-	MainMenuBar(){
+	MainMenuBar(ContentPanel contpa){
+		this.contpa=contpa;
+		
 		//初始化
 		file=new JMenu("文件");
 		help=new JMenu("帮助");
@@ -62,6 +66,34 @@ public class MainMenuBar extends JMenuBar{
 		
 		add(file);
 		add(help);
+		
+		save.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				contpa.savepic();
+			}
+		});
+		
+		create.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				contpa.newfile();
+			}
+		});
+		
+		open.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				contpa.open();
+			}
+		});
+		
+		saveas.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				contpa.saveas();
+			}
+		});
 		
 	}
 }

@@ -4,22 +4,35 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class MyShape {
 	
 	public static double pi=3.141592653589793238463;
+	public static int inf=0x7fffffff;
 	
 	public void changepounds(int pounds) {}//改变粗细
 	
 	public void changecolor(Color color) {}//改变颜色
 	
+	public void fillup(Color color, Graphics g) {}//设置内部颜色
+	
+	void fill(Graphics g) {}//填充
+	
 	public Cursor getCursor(int x, int y) {return new Cursor(0);}//判断当前位置与目标图形的位置关系以此确定鼠标形状
-	
-	public boolean inrotate(int x, int y) {return false;}//是否在旋转点
-	
+
 	public boolean inboarder(int x, int y) {return false;}//是否在图形边界上
 	
 	public boolean ininternal(int x, int y) {return false;}//是否在图形内部
+	
+	public boolean inrotate(int x, int y, MyPoint tpoint1, MyPoint tpoint2, double tangle) {
+		int x1=tpoint1.x, y1=tpoint1.y;
+		int x2=tpoint2.x, y2=tpoint2.y;
+		double x0=((double)x1+x2)/2,y0=((double)y1+y2)/2;
+		int xtmp=(int)(x0+20*Math.cos(tangle));
+		int ytmp=(int)(y0+20*Math.sin(tangle));
+		return aroundpoint(xtmp,ytmp,x,y);
+	}
 	
 	public void changeshape(Cursor cursor, int x, int y) {}//根据鼠标形状判断应该如何形变
 	
@@ -42,6 +55,40 @@ public class MyShape {
 	public void leftdownexpansion(int x, int y) {}//左下的扩张线
 	
 	public void rightdownexpansion(int maxx, int maxy) {}//右下的扩张线
+	
+	protected static void sort(ArrayList<Integer> y, ArrayList<TwoEdges> points) {
+		//由小到大
+		int len=y.size();
+		boolean exchange=false;
+		int i,j;
+		for(i=1;i<len;i++) {
+			for(j=len-1;j>=i;j--) {
+				if(y.get(j)<y.get(j-1)) {
+					exchange=true;
+					Collections.swap(y, j, j-1);
+					Collections.swap(points, j, j-1);
+				}
+			}
+			if(!exchange) return;
+		}
+	}
+	
+	protected static void sort(double[] x) {
+		int len=x.length;
+		boolean exchange=false;
+		int i,j;
+		for(i=1;i<len;i++) {
+			for(j=len-1;j>=i;j--) {
+				if(x[j]<x[j-1]) {
+					exchange=true;
+					double tmpx=x[j];
+					x[j]=x[j-1];
+					x[j-1]=tmpx;
+				}
+			}
+			if(!exchange) return;
+		}
+	}
 	
 	public void draw(Graphics g) {}
 	
@@ -394,38 +441,38 @@ public class MyShape {
 		
 		int minx=pointmin.x, miny=pointmin.y;
 		int maxx=pointmax.x, maxy=pointmax.y;
-		double rx=(maxx-minx)/2;
-		double ry=(maxy-miny)/2;
-		int rx2=(int)(rx*rx);
-		int ry2=(int)(ry*ry);
-		int x=0,y=(int)ry;
+		double rx=((double)maxx-minx)/2;
+		double ry=((double)maxy-miny)/2;
+		double rx2=rx*rx;
+		double ry2=ry*ry;
+		double x=0,y=ry;
 		double pk=ry2-rx2*ry+0.25*rx2;
-		int x0=(maxx+minx)/2;
-		int y0=(maxy+miny)/2;
-		//逆时针旋转
+		double x0=((double)maxx+minx)/2;
+		double y0=((double)maxy+miny)/2;
+		//顺时针旋转
 		double costheta=Math.cos(theta);
 		double sintheta=Math.sin(theta);
-		int newx=x0+(int)(x*costheta+y*sintheta);
-		int newy=y0+(int)(x*sintheta+y*costheta);
-		g.drawLine(newx, newy, newx, newy);//(x0+x,y0+y)
-		//关于(x0,y0)对称
-		g.drawLine(2*x0-newx, 2*y0-newy, 2*x0-newx, 2*y0-newy);//(x0-x,y0-y)
+		//绕着(0,0)旋转之后再平移
+		double newx=x0+x*costheta-y*sintheta;
+		double newy=y0+x*sintheta+y*costheta;
+		g.drawLine((int)(newx+0.5), (int)(newy+0.5), (int)(newx+0.5), (int)(newy+0.5));//(x,y)
+		g.drawLine((int)(2*x0-newx+0.5), (int)(2*y0-newy+0.5), (int)(2*x0-newx+0.5), (int)(2*y0-newy+0.5));//(-x,-y)
 		while(ry2*x<rx2*y) {
 			if(pk<0)
 				pk=pk+2*x*ry2+ry2;
 			else {
 				pk=pk+2*x*ry2+ry2-2*y*rx2+rx2;
-				y--;
+				y=y-1;
 			}
-			x++;
-			newx=x0+(int)(x*costheta+y*sintheta);
-			newy=y0+(int)(x*sintheta+y*costheta);
-			g.drawLine(newx, newy, newx, newy);//(x0+x,y0+y)
-			g.drawLine(2*x0-newx, 2*y0-newy, 2*x0-newx, 2*y0-newy);//(x0-x,y0-y)
-			newx=x0+(int)(x*costheta-y*sintheta);
-			newy=y0+(int)(x*sintheta-y*costheta);
-			g.drawLine(newx,newy,newx,newy);//(x0+x,y0-y)
-			g.drawLine(2*x0-newx, 2*y0-newy, 2*x0-newx, 2*y0-newy);//(x0-x,y0+y)
+			x=x+1;
+			newx=x0+x*costheta-y*sintheta;
+			newy=y0+x*sintheta+y*costheta;
+			g.drawLine((int)(newx+0.5), (int)(newy+0.5), (int)(newx+0.5), (int)(newy+0.5));//(x,y)
+			g.drawLine((int)(2*x0-newx+0.5), (int)(2*y0-newy+0.5), (int)(2*x0-newx+0.5), (int)(2*y0-newy+0.5));//(-x,-y)
+			newx=x0+x*costheta+y*sintheta;
+			newy=y0+x*sintheta-y*costheta;
+			g.drawLine((int)(newx+0.5), (int)(newy+0.5), (int)(newx+0.5), (int)(newy+0.5));//(x,-y)
+			g.drawLine((int)(2*x0-newx+0.5), (int)(2*y0-newy+0.5), (int)(2*x0-newx+0.5), (int)(2*y0-newy+0.5));//(-x,y)
 		}
 		pk=rx2+0.25*ry2-rx2*ry2/Math.sqrt(rx2+ry2);
 		while(y>0) {
@@ -436,14 +483,14 @@ public class MyShape {
 			else
 				pk=pk-2*y*rx2+rx2;
 			y--;
-			newx=x0+(int)(x*costheta+y*sintheta);
-			newy=y0+(int)(x*sintheta+y*costheta);
-			g.drawLine(newx, newy, newx, newy);//(x0+x,y0+y)
-			g.drawLine(2*x0-newx, 2*y0-newy, 2*x0-newx, 2*y0-newy);//(x0-x,y0-y)
-			newx=x0+(int)(x*costheta-y*sintheta);
-			newy=y0+(int)(x*sintheta-y*costheta);
-			g.drawLine(newx, newy, newx, newy);//(x0+x,y0-y)
-			g.drawLine(2*x0-newx, 2*y0-newy, 2*x0-newx, 2*y0-newy);//(x0-x,y0+y)
+			newx=x0+x*costheta-y*sintheta;
+			newy=y0+x*sintheta+y*costheta;
+			g.drawLine((int)(newx+0.5), (int)(newy+0.5), (int)(newx+0.5), (int)(newy+0.5));//(x,y)
+			g.drawLine((int)(2*x0-newx+0.5), (int)(2*y0-newy+0.5), (int)(2*x0-newx+0.5), (int)(2*y0-newy+0.5));//(-x,-y)
+			newx=x0+x*costheta+y*sintheta;
+			newy=y0+x*sintheta-y*costheta;
+			g.drawLine((int)(newx+0.5), (int)(newy+0.5), (int)(newx+0.5), (int)(newy+0.5));//(x,-y)
+			g.drawLine((int)(2*x0-newx+0.5), (int)(2*y0-newy+0.5), (int)(2*x0-newx+0.5), (int)(2*y0-newy+0.5));//(-x,y)
 		}
 		g.setColor(precolor);
 	}

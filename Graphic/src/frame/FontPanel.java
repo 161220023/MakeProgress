@@ -70,18 +70,22 @@ class FontSizeList extends JComboBox {
 	static String[] size= {"1","2","3","4","5","6","7","8","9","10"};
 	static ListModel listmodel=new ListModel(size);
 	int fontsize;
+	
+	ContentPanel contpa;
+	
 	@SuppressWarnings("unchecked")
-	FontSizeList(){
+	FontSizeList(ContentPanel contpa){
 		super(listmodel);
+		this.contpa=contpa;
 		fontsize=1;//默认的字体大小是1
 		this.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				fontsize=Integer.parseInt((String)e.getItem());
 				//ContentPanel.font=new Font("Arial", Font.PLAIN, fontsize);
-				ContentPanel.fontsize=fontsize;
-				if(ContentPanel.curshape!=null)
-					ContentPanel.curshape.changepounds(fontsize);
+				contpa.fontsize=fontsize;
+				if(contpa.curshape!=null)
+					contpa.curshape.changepounds(fontsize);
 				//ContentPanel.fontsize=fontsize;
 			}
 		});
@@ -94,13 +98,17 @@ public class FontPanel extends JPanel{
 	FontStyleList fontstylelist;
 	FontSizeList fontsizelist;
 
-	FontPanel(){
+	ContentPanel contpa;
+	
+	FontPanel(ContentPanel contpa){
+		
+		this.contpa=contpa;
 		
 		fontnamelist=new FontNameList();
 		fontstylelist=new FontStyleList();
 		
 		//暂时只有大小能用
-		fontsizelist=new FontSizeList();
+		fontsizelist=new FontSizeList(contpa);
 		
 		//添加内容
 		add(fontnamelist);

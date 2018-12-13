@@ -10,6 +10,7 @@ public class MyLine extends MyShape{
 	MyPoint point1,point2;
 	int pounds;
 	Color color;
+	double angle;
 	
 	public MyLine() {
 		

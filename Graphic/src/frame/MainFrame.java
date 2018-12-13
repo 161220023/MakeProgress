@@ -34,21 +34,6 @@ public class MainFrame extends JFrame{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocation(WIDTH/6, HEIGHT/6);
 		icon=Toolkit.getDefaultToolkit().getImage(getClass().getResource("additions/frameicon.png"));
-		/*//获取工程路径并设置窗体图标
-		File f=new File("");
-		String path="\\src\\frame\\additions";
-		try {
-			path=f.getCanonicalPath()+path;
-		} catch (IOException e) {
-			// TODO 自动生成的 catch 块
-			e.printStackTrace();
-		}
-		try {
-			icon=ImageIO.read(new File(path+"\\frameicon.png"));
-		} catch (IOException e) {
-			// TODO 自动生成的 catch 块
-			e.printStackTrace();
-		}*/
 		setIconImage(icon);
 		
 		
@@ -56,31 +41,25 @@ public class MainFrame extends JFrame{
 		setLayout(new BorderLayout());
 		JPanel jp=new JPanel();
 		jp.setLayout(new BorderLayout());
+		
+		contentpanel=new ContentPanel();
+		
 		menupanel=new JRootPane();
 		toolpanel=new JPanel();
-		fontpanel=new FontPanel();
-		/*String movecursor="\\movecursor.png";
-		try {
-			Image cimage=ImageIO.read(new File(path+movecursor));
-			Cursor cursor = tk.createCustomCursor(cimage, new Point(10, 10), "norm");
-			jp.setCursor(cursor);
-		} catch (IOException e) {
-			// TODO 自动生成的 catch 块
-			e.printStackTrace();
-		}*/
+		fontpanel=new FontPanel(contentpanel);
 		
 		FlowLayout fl=new FlowLayout();
 		fl.setAlignment(FlowLayout.LEFT);
 		toolpanel.setLayout(fl);
-		shapepanel= new ShapesPanel();
+		shapepanel= new ShapesPanel(contentpanel);
 		locationpanel=new JPanel();
 		
 		//初始化菜单栏和工具条
-		mmb=new MainMenuBar();
-		ctb=new ColorToolBar();
+		mmb=new MainMenuBar(contentpanel);
+		ctb=new ColorToolBar(contentpanel);
 		
 		//初始化内容面板
-		contentpanel=new ContentPanel();
+		//contentpanel=new ContentPanel();
 		
 		//初始化坐标面板
 		locationpanel.setPreferredSize(new Dimension(0,25));

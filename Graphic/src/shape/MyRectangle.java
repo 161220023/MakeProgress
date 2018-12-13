@@ -3,13 +3,15 @@ package shape;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
+import java.util.ArrayList;
 
 import frame.ContentPanel;
 
 public class MyRectangle extends MyShape{
 	public MyPoint point1,point2,point3,point4;
 	public int pounds;
-	public Color color;
+	public Color bordercolor;
+	public Color innercolor;
 	public double angle;
 	
 	public MyRectangle() {
@@ -22,8 +24,8 @@ public class MyRectangle extends MyShape{
 		point3=pointmax;
 		point4=new MyPoint(pointmin.x,pointmax.y);
 		this.pounds=pounds;
-		this.color=color;
-		angle=pi/2;
+		this.bordercolor=color;
+		angle=3*pi/2;
 	}
 	
 	@Override
@@ -33,7 +35,19 @@ public class MyRectangle extends MyShape{
 	
 	@Override
 	public void changecolor(Color color) {
-		this.color=color;
+		bordercolor=color;
+	}
+		
+	@Override
+	public void fillup(Color color, Graphics g) {
+		innercolor=color;
+		/*ArrayList<MyPoint> points=new ArrayList<>();
+		points.add(point1);
+		points.add(point2);
+		points.add(point3);
+		points.add(point4);
+		MyPolygon.fill(g, color, points);*/
+		draw(g);
 	}
 	
 	public Cursor getCursor(int x, int y) {
@@ -59,7 +73,7 @@ public class MyRectangle extends MyShape{
 			return ContentPanel.leftexpansion;
 		else if(ininternal(x,y))
 			return ContentPanel.move;
-		else if(inrotate(x,y))
+		else if(inrotate(x,y,point1,point2,angle))
 			return ContentPanel.rotate;
 		return ContentPanel.crisscross;
 	}
@@ -86,23 +100,13 @@ public class MyRectangle extends MyShape{
 			//以(x,y)与(x0,y0)的夹角为angle
 			int x1=point1.x, y1=point1.y;
 			int x3=point3.x, y3=point3.y;
-			int x0=(x1+x3)/2, y0=(y1+y3)/2;
+			double x0=((double)x1+x3)/2, y0=((double)y1+y3)/2;
 			if(x==x0&&y==y0) return;
 			double tmp=Math.sqrt((x-x0)*(x-x0)+(y-y0)*(y-y0));
 			double theta=Math.acos((x-x0)/tmp);
-			if(y>y0) theta=2*pi-theta;
+			if(y<y0) theta=2*pi-theta;
 			rotate(theta);
-		}	
-	}
-	
-	@Override
-	public boolean inrotate(int x, int y) {
-		int x1=point1.x, y1=point1.y;
-		int x2=point2.x, y2=point2.y;
-		int x0=(x1+x2)/2,y0=(y1+y2)/2;
-		int xtmp=(int)(x0+20*Math.cos(angle));
-		int ytmp=(int)(y0-20*Math.sin(angle));
-		return aroundpoint(xtmp,ytmp,x,y);
+		}
 	}
 	
 	@Override
@@ -127,9 +131,6 @@ public class MyRectangle extends MyShape{
 		theta1=angle+pi/2;
 		theta2=angle;
 		while(theta1>=2*pi) theta1-=2*pi;
-		System.out.println("theta1="+theta1);
-		System.out.println("theta2="+theta2);
-		
 		if(Math.abs(theta1-pi/2)<1e-5||Math.abs(theta1-3*pi/2)<1e-5) {
 			a1=1;
 			b1=0;
@@ -155,11 +156,6 @@ public class MyRectangle extends MyShape{
 		double l2=a2*x+b2*y+c2;
 		double l3=a1*x+b1*y+c3;
 		double l4=a2*x+b2*y+c4;
-		System.out.println("a1="+a1+", b1="+b1+", c1="+c1+", c3="+c3);
-		System.out.println("a2="+a2+", b2="+b2+", c2="+c2+", c4="+c4);
-		System.out.println("l1="+l1+", l3="+l3);
-		System.out.println("l2="+l2+", l4="+l4);
-		
 		if((l1>0&&l3<0||l1<0&&l3>0)&&(l2>0&&l4<0||l2<0&&l4>0))
 			return true;
 		else
@@ -170,7 +166,7 @@ public class MyRectangle extends MyShape{
 	public void rotate(double theta) {
 		while(theta>=2*pi) theta-=2*pi;
 		while(theta<0) theta+=2*pi;
-		//各个点旋转theta-angle
+		//各个点顺时针旋转theta-angle
 		double deltatheta=theta-angle;
 		angle=theta;
 		
@@ -181,14 +177,15 @@ public class MyRectangle extends MyShape{
 		double x0=((double)x1+x3)/2, y0=((double)y1+y3)/2;
 		double costheta=Math.cos(deltatheta);
 		double sintheta=Math.sin(deltatheta);
-		point1.x=(int)(x0+(x1-x0)*costheta+(y1-y0)*sintheta);
-		point1.y=(int)(y0+(x0-x1)*sintheta+(y1-y0)*costheta);
-		point2.x=(int)(x0+(x2-x0)*costheta+(y2-y0)*sintheta);
-		point2.y=(int)(y0+(x0-x2)*sintheta+(y2-y0)*costheta);
-		point3.x=(int)(x0+(x3-x0)*costheta+(y3-y0)*sintheta);
-		point3.y=(int)(y0+(x0-x3)*sintheta+(y3-y0)*costheta);
-		point4.x=(int)(x0+(x4-x0)*costheta+(y4-y0)*sintheta);
-		point4.y=(int)(y0+(x0-x4)*sintheta+(y4-y0)*costheta);
+		//顺时针旋转
+		point1.x=(int)(x0+(x1-x0)*costheta+(y0-y1)*sintheta);
+		point1.y=(int)(y0+(x1-x0)*sintheta+(y1-y0)*costheta);
+		point2.x=(int)(x0+(x2-x0)*costheta+(y0-y2)*sintheta);
+		point2.y=(int)(y0+(x2-x0)*sintheta+(y2-y0)*costheta);
+		point3.x=(int)(x0+(x3-x0)*costheta+(y0-y3)*sintheta);
+		point3.y=(int)(y0+(x3-x0)*sintheta+(y3-y0)*costheta);
+		point4.x=(int)(x0+(x4-x0)*costheta+(y0-y4)*sintheta);
+		point4.y=(int)(y0+(x4-x0)*sintheta+(y4-y0)*costheta);
 	}
 	
 	@Override
@@ -257,7 +254,13 @@ public class MyRectangle extends MyShape{
 	
 	@Override
 	public void draw(Graphics g) {
-		MyShape.drawrectangle(g, point1,point2,point3,point4, pounds, color);
+		ArrayList<MyPoint> points=new ArrayList<>();
+		points.add(point1);
+		points.add(point2);
+		points.add(point3);
+		points.add(point4);
+		MyPolygon.fill(g, innercolor, points);
+		MyShape.drawrectangle(g, point1,point2,point3,point4, pounds, bordercolor);
 	}
 	
 	public static MyPoint intersection(double a1, double b1, double c1, double a2, double b2, double c2) {

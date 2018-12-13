@@ -1,5 +1,5 @@
 package shape;
 
-public class MyPaintBucket {
+public class MyPaintBucket extends MyShape {
 
 }
