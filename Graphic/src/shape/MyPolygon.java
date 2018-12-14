@@ -31,19 +31,13 @@ class TwoEdges{
 
 public class MyPolygon extends MyShape {
 
-	ArrayList<MyPoint> points;
+	public ArrayList<MyPoint> points;
 	ArrayList<MyScale> scales;
 	MyPoint point1,point2,point3,point4;//外接矩形的坐标,会随着旋转而改变
 	double angle;  //外接矩形中心点与p1,p2中点连线与x轴夹角
 	int pounds;
 	Color bordercolor;
 	Color innercolor;
-	
-	//static int inf=0x7fffffff;
-	
-	public MyPolygon(){//pounds, color, arraylist<MyPoint>, MyPoint(minx, miny), MyPoint(maxx, maxy), ArrayList<double>(scale)
-		//各点按照顺序形成边
-	}
 	
 	public MyPolygon(int pounds, Color color){
 		angle=3*pi/2;
@@ -231,7 +225,7 @@ public class MyPolygon extends MyShape {
 				return ContentPanel.move;
 			else if(inrotate(x,y,point1,point2,angle))
 				return ContentPanel.rotate;
-			return ContentPanel.crisscross;
+			return ContentPanel.normal;
 		}
 	}
 

@@ -12,10 +12,6 @@ public class MyLine extends MyShape{
 	Color color;
 	double angle;
 	
-	public MyLine() {
-		
-	}
-	
 	public MyLine(MyPoint point1, MyPoint point2, int pounds, Color color) {//MyPoint(x1, y1), MyPoint(x2, y2), pounds, color
 		//前四个是坐标,第5个是粗细,第六个是颜色
 		//不需要旋转属性,直接改变直线的点
@@ -45,7 +41,7 @@ public class MyLine extends MyShape{
 			return ContentPanel.move;
 		//还有旋转
 		else
-			return ContentPanel.crisscross;
+			return ContentPanel.normal;
 	}
 	
 	@Override

@@ -92,9 +92,18 @@ public class MyShape {
 	
 	public void draw(Graphics g) {}
 	
-	public static boolean aroundpoint(int x1, int y1, int x2, int y2) {//是否在某个点附近
+	public static boolean aroundpoint(int x1, int y1, int x2, int y2) {
 		double d=(x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
 		return d<=25;
+	}
+	
+	public static boolean aroundpoint(int x1, int y1, int x2, int y2, int dis) {//是否在某个点的欧氏距离附近
+		double d=(x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
+		return d<=dis*dis;
+	}
+	
+	public static boolean aroundchesspoint(int x1, int y1, int x2, int y2, int dis) {//是否在某个点的棋盘距离附近
+		return Math.abs(x1-x2)<=dis&&Math.abs(y1-y2)<=dis;
 	}
 	
 	private static void draw1poundline(Graphics g, int x1, int y1, int x2, int y2) {

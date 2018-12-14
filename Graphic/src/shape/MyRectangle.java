@@ -14,10 +14,6 @@ public class MyRectangle extends MyShape{
 	public Color innercolor;
 	public double angle;
 	
-	public MyRectangle() {
-		
-	}
-
 	public MyRectangle(MyPoint pointmin, MyPoint pointmax, int pounds, Color color){
 		point1=pointmin;
 		point2=new MyPoint(pointmax.x,pointmin.y);
@@ -75,7 +71,7 @@ public class MyRectangle extends MyShape{
 			return ContentPanel.move;
 		else if(inrotate(x,y,point1,point2,angle))
 			return ContentPanel.rotate;
-		return ContentPanel.crisscross;
+		return ContentPanel.normal;
 	}
 	
 	@Override

@@ -3,8 +3,6 @@ package frame;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import shape.MyPaintBucket;
-
 import java.awt.*;
 import java.awt.event.*;
 
@@ -113,8 +111,11 @@ public class ColorToolBar extends JToolBar{
 			public void actionPerformed(ActionEvent e) {
 				Color color=JColorChooser.showDialog(contpa, "±à¼­ÑÕÉ«", Color.BLACK);
 				foregroundcolorbutton.setBackground(color);
-				modifycurshapecolor(color);
 				contpa.forecolor=color;
+				if(contpa.curshape!=null) {
+					contpa.curshape.changecolor(color);
+					contpa.curshape.draw(contpa.g);
+				}
 			}
 		});
 		
@@ -130,18 +131,15 @@ public class ColorToolBar extends JToolBar{
 		addButtonListener(purple);
 	}
 	
-	void modifycurshapecolor(Color color) {
-		if(contpa.curshape!=null)
-			contpa.curshape.changecolor(color);
-	}
-	
 	void addButtonListener(ColorButton cb) {
 		cb.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				foregroundcolorbutton.setBackground(cb.color);
-				if(contpa.shape.getClass()!=MyPaintBucket.class)
-					modifycurshapecolor(cb.color);
 				contpa.forecolor=cb.color;
+				if(contpa.curshape!=null) {
+					contpa.curshape.changecolor(cb.color);
+					contpa.curshape.draw(contpa.g);
+				}
 			}
 		});
 		cb.addMouseListener(new MouseAdapter() {

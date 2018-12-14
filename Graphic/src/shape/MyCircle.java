@@ -13,10 +13,6 @@ public class MyCircle extends MyShape{
 	int pounds;
 	Color bordercolor;
 	Color innercolor;
-	
-	public MyCircle() {
-		
-	}
 
 	public MyCircle(MyPoint point0, int r, int pounds, Color color){//不需要旋转属性
 		this.point0=point0;
@@ -80,7 +76,7 @@ public class MyCircle extends MyShape{
 		else if(ininternal(x,y))
 			return ContentPanel.move;
 		else
-			return ContentPanel.crisscross;
+			return ContentPanel.normal;
 	}
 	
 	@Override

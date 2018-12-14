@@ -13,11 +13,7 @@ public class MyOval extends MyShape{
 	Color bordercolor;
 	Color innercolor;
 	double angle;//p1和p2的中点与x轴的夹角
-	
-	public MyOval() {
-		
-	}
-	
+
 	public MyOval(MyPoint pointmin, MyPoint pointmax, int pounds, Color color){
 		this.point1=pointmin;
 		this.point2=new MyPoint(pointmax.x, pointmin.y);
@@ -171,7 +167,7 @@ public class MyOval extends MyShape{
 		else if(inrotate(x,y,point1,point2,angle))
 			return ContentPanel.rotate;
 		else
-			return ContentPanel.crisscross;
+			return ContentPanel.normal;
 	}
 
 	public void changeshape(Cursor cursor, int x, int y) {

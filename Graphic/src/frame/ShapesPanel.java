@@ -3,38 +3,23 @@ package frame;
 import shape.*;
 
 import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Enumeration;
 
 @SuppressWarnings("serial")
-class ShapeButton extends JButton{
-	MyShape shape;
-	Border defaultborder;
-	ShapeButton(MyShape shape){
-		this.shape=shape;
-		setBorder(null);
-		defaultborder=getBorder();
-	}
-}
-
-@SuppressWarnings("serial")
 public class ShapesPanel extends JPanel{
 	ButtonGroup bg;
 
-	ShapeButton pencil;
-	ShapeButton eraser;
-	ShapeButton sampler;
-	ShapeButton paintbucket;
-	ShapeButton string;
+	JButton normal;
+	JButton paintbucket;
 	
-	ShapeButton line;
-	ShapeButton rect;
-	ShapeButton circle;
-	ShapeButton oval;
-	ShapeButton polygon;
-	ShapeButton bsplinecurve;
+	JButton line;
+	JButton rect;
+	JButton circle;
+	JButton oval;
+	JButton polygon;
+	JButton bsplinecurve;
 	
 	Toolkit tk;
 	
@@ -50,25 +35,29 @@ public class ShapesPanel extends JPanel{
 		
 		//初始化
 		bg=new ButtonGroup();
+		normal=new JButton();
+		paintbucket=new JButton();
 		
-		pencil=new ShapeButton(new MyPencil());
-		eraser=new ShapeButton(new MyEraser());
-		sampler=new ShapeButton(new MySampler());
-		paintbucket=new ShapeButton(new MyPaintBucket());
-		string=new ShapeButton(new MyString());
+		line=new JButton();
+		rect=new JButton();
+		circle=new JButton();
+		oval=new JButton();
+		polygon=new JButton();
+		bsplinecurve=new JButton();
 		
-		line=new ShapeButton(new MyLine());
-		rect=new ShapeButton(new MyRectangle());
-		circle=new ShapeButton(new MyCircle());
-		oval=new ShapeButton(new MyOval());
-		polygon=new ShapeButton(new MyPolygon());
-		bsplinecurve=new ShapeButton(new MyBSplineCurve());
+		
+		normal.setBorder(null);
+		paintbucket.setBorder(null);
+		line.setBorder(null);
+		rect.setBorder(null);
+		circle.setBorder(null);
+		oval.setBorder(null);
+		polygon.setBorder(null);
+		bsplinecurve.setBorder(null);
+		
 		
 		//设置首选大小
-		pencil.setPreferredSize(new Dimension(20,20));
-		eraser.setPreferredSize(new Dimension(20,20));
-		sampler.setPreferredSize(new Dimension(20,20));
-		string.setPreferredSize(new Dimension(20,20));
+		normal.setPreferredSize(new Dimension(20,20));
 		paintbucket.setPreferredSize(new Dimension(20,20));
 		
 		line.setPreferredSize(new Dimension(20,20));
@@ -78,24 +67,21 @@ public class ShapesPanel extends JPanel{
 		polygon.setPreferredSize(new Dimension(20,20));
 		bsplinecurve.setPreferredSize(new Dimension(20,20));
 		
+		
 		@SuppressWarnings("rawtypes")
 		Class c=getClass();
-		ImageIcon pencilicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/pencil.jpg")));
-		ImageIcon erasericon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/eraser.jpg")));
-		ImageIcon samplericon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/sampler.jpg")));
-		ImageIcon stringicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/string.jpg")));
+		ImageIcon normalicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/normal.jpg")));
 		ImageIcon painticon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/paint.jpg")));
+		
 		ImageIcon lineicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/line.jpg")));
 		ImageIcon recticon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/rectangle.jpg")));
 		ImageIcon ovalicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/oval.jpg")));
 		ImageIcon circleicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/circle.jpg")));
 		ImageIcon polygonicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/polygon.jpg")));
 		ImageIcon bsplinecurveicon=new ImageIcon(tk.getImage(c.getResource("/shape/additions/bsplinecurve.jpg")));
+
 		
-		pencil.setIcon(pencilicon);
-		eraser.setIcon(erasericon);
-		sampler.setIcon(samplericon);
-		string.setIcon(stringicon);
+		normal.setIcon(normalicon);
 		paintbucket.setIcon(painticon);
 		
 		line.setIcon(lineicon);
@@ -106,10 +92,7 @@ public class ShapesPanel extends JPanel{
 		bsplinecurve.setIcon(bsplinecurveicon);
 		
 		//设置提示
-		pencil.setToolTipText("铅笔");
-		eraser.setToolTipText("橡皮擦");
-		sampler.setToolTipText("颜色取样器");
-		string.setToolTipText("文本");
+		normal.setToolTipText("编辑");
 		paintbucket.setToolTipText("颜料桶");
 		
 		line.setToolTipText("直线");
@@ -119,15 +102,14 @@ public class ShapesPanel extends JPanel{
 		polygon.setToolTipText("多边形");
 		bsplinecurve.setToolTipText("B样条曲线");
 		
+		
 		//设置布局
 		setLayout(new FlowLayout(FlowLayout.LEFT,5,5));
 		setPreferredSize(new Dimension(55,100));
 		
+		
 		//添加按钮
-		bg.add(pencil);
-		bg.add(eraser);
-		bg.add(sampler);
-		bg.add(string);
+		bg.add(normal);
 		bg.add(paintbucket);
 		
 		bg.add(line);
@@ -136,11 +118,9 @@ public class ShapesPanel extends JPanel{
 		bg.add(oval);
 		bg.add(polygon);
 		bg.add(bsplinecurve);
-		
-		add(pencil);
-		add(eraser);
-		add(sampler);
-		add(string);
+
+
+		add(normal);
 		add(paintbucket);
 		
 		add(line);
@@ -152,17 +132,12 @@ public class ShapesPanel extends JPanel{
 		
 		//设置默认图形
 		line.setSelected(true);
-		contpa.shape=line.shape;
+		contpa.shapetype=ShapeType.LINE;
 		line.setBorder(BorderFactory.createLoweredBevelBorder());
 		
 		//添加事件侦听器
-		actionshape(pencil);
-		actionshape(eraser);
-		actionshape(sampler);
+		actionshape(normal);
 		actionshape(paintbucket);
-		
-		//要给文本按钮设置选择启用字体面板,未选择禁用字体面板
-		actionshape(string);
 		
 		actionshape(line);
 		actionshape(rect);
@@ -172,7 +147,7 @@ public class ShapesPanel extends JPanel{
 		actionshape(bsplinecurve);
 	}
 	
-	void actionshape(ShapeButton sb) {
+	void actionshape(JButton sb) {
 		sb.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseEntered(MouseEvent e) {
@@ -186,30 +161,28 @@ public class ShapesPanel extends JPanel{
 				//如果没有被选中,则设置为原来的边框
 				//如果被选中,则设置为凹边框
 				if(!sb.isSelected())
-					sb.setBorder(sb.defaultborder);
+					sb.setBorder(null);
 				else
 					sb.setBorder(BorderFactory.createLoweredBevelBorder());
 			}
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				//如果前一个是polygon则让其闭合或者若没有达到两点之间的距离要求则取消
+				//如果前面在画多边形或曲线,则polygon或bslinecurve不为null,要将其添加进去
+				if(contpa.polygon!=null) contpa.addpolygon();
+				if(contpa.bcurve!=null)  contpa.addbsplinecurve();
 				contpa.curshape=null;  //更换形状要设置当前形状为null
-				contpa.polygon=null;   //取消继续画多边形
-				contpa.bcurve=null;    //取消继续画B样条曲线
 				sb.setSelected(true);
-				if(sb.shape instanceof MyPolygon)   //表明要画多边形
-					contpa.Polygonflag=true;
-				else
-					contpa.Polygonflag=false; //画非多边形
-				if(sb.shape instanceof MyBSplineCurve)
-					contpa.bsplinecurveflag=true;
-				else
-					contpa.bsplinecurveflag=false;
+				if(sb==line) 				contpa.shapetype=ShapeType.LINE;
+				else if(sb==rect) 			contpa.shapetype=ShapeType.RECT;
+				else if(sb==circle) 		contpa.shapetype=ShapeType.CIRCLE;
+				else if(sb==oval)			contpa.shapetype=ShapeType.OVAL;
+				else if(sb==polygon) 		contpa.shapetype=ShapeType.POLYGON;
+				else if(sb==bsplinecurve) 	contpa.shapetype=ShapeType.BSPLINECURVE;
+				else if(sb==normal)			contpa.shapetype=ShapeType.NORMAL;
+				else if(sb==paintbucket)	contpa.shapetype=ShapeType.PAINT;
+				else						contpa.shapetype=null;
 				sb.setBorder(BorderFactory.createLoweredBevelBorder());
-				
-				//设置面板的图形
-				contpa.shape=sb.shape;
 				
 				//将同一个组的其他按钮设置为未选中,且重绘默认边框
 				Enumeration<AbstractButton> shapes=bg.getElements();
@@ -217,7 +190,7 @@ public class ShapesPanel extends JPanel{
 					AbstractButton shape=shapes.nextElement();
 					if(shape!=sb) {
 						shape.setSelected(false);
-						shape.setBorder(sb.defaultborder);
+						shape.setBorder(null);
 					}
 				}
 			}

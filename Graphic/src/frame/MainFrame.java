@@ -57,10 +57,7 @@ public class MainFrame extends JFrame{
 		//初始化菜单栏和工具条
 		mmb=new MainMenuBar(contentpanel);
 		ctb=new ColorToolBar(contentpanel);
-		
-		//初始化内容面板
-		//contentpanel=new ContentPanel();
-		
+
 		//初始化坐标面板
 		locationpanel.setPreferredSize(new Dimension(0,25));
 		locationpanel.setLayout(new FlowLayout(FlowLayout.LEFT));
